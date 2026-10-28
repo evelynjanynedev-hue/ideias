@@ -55,6 +55,35 @@ Abra o link: o navegador pede usuário (`zyra`) e a senha definida. O app começ
 
 ---
 
+## Opção 1b — Esta máquina + Cloudflare Tunnel (sem conta)
+
+Quando não dá para criar conta em PaaS (verificação por e-mail, cartão etc.), dá para rodar o app **aqui** e expor por HTTPS com um túnel do Cloudflare. O banco continua no Turso, então os dados são os mesmos de qualquer outro host.
+
+```bash
+brew install cloudflared
+
+ZYRA_DB_URL=libsql://zyra-....turso.io \
+ZYRA_DB_AUTH_TOKEN=... \
+ZYRA_PASSWORD=SUA-SENHA \
+./scripts/publicar.sh --build
+```
+
+O terminal mostra o link `https://algo-algo-algo.trycloudflare.com`. Enquanto o processo estiver de pé, o link funciona.
+
+Para deixar rodando sozinho (inclusive depois de reiniciar o Mac), os dois serviços de `launchd` em `deploy/launchd/` cuidam disso:
+
+```bash
+cp deploy/launchd/com.zyra.app.plist deploy/launchd/com.zyra.tunnel.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.zyra.app.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.zyra.tunnel.plist
+cat "$HOME/Library/Application Support/zyra/url.txt"   # link atual
+```
+
+Prós: grátis, sem conta, dados persistentes no Turso, sobe em segundos.
+Contras: o Mac precisa estar ligado e com internet; a URL muda quando o túnel reinicia; túnel rápido do Cloudflare não tem SLA.
+
+---
+
 ## Opção 2 — Docker com volume
 
 Para VPS, Railway, Render ou Fly.io. Nesse modo o banco é um arquivo dentro do volume.
