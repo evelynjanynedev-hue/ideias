@@ -2,18 +2,16 @@ services:
   - type: web
     name: zyra
     runtime: docker
-    plan: starter # disco persistente exige plano pago no Render
+    plan: free
     healthCheckPath: /api/health
     envVars:
-      - key: ZYRA_DATA_DIR
-        value: /data
+      - key: ZYRA_DB_URL
+        sync: false # libsql://... (Turso)
+      - key: ZYRA_DB_AUTH_TOKEN
+        sync: false # token do Turso
       - key: ZYRA_SEED
         value: "0"
       - key: ZYRA_USER
         value: zyra
       - key: ZYRA_PASSWORD
         sync: false # defina no dashboard (nunca no git)
-    disk:
-      name: zyra-data
-      mountPath: /data
-      sizeGB: 1
