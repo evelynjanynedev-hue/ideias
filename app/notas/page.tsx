@@ -94,7 +94,7 @@ export default async function NotasPage({
   searchParams: Promise<{ tipo?: string }>;
 }) {
   const { tipo = "todas" } = await searchParams;
-  const notas = q.listarNotas(tipo);
+  const notas = await q.listarNotas(tipo);
 
   return (
     <div>

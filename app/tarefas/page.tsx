@@ -16,7 +16,7 @@ function Grupo({
   nomePessoa,
 }: {
   titulo: string;
-  tarefas: ReturnType<typeof q.listarTarefasAbertas>;
+  tarefas: Awaited<ReturnType<typeof q.listarTarefasAbertas>>;
   nomeProjeto: Map<string, string>;
   nomePessoa: Map<string, string>;
 }) {
@@ -45,10 +45,12 @@ export default async function TarefasPage({
   const { area, projeto } = await searchParams;
   const h = hoje();
 
-  const todasAbertas = q.listarTarefasAbertas();
-  const feitas = q.listarTarefasFeitas(30);
-  const projetos = q.listarProjetos();
-  const pessoas = q.listarPessoas();
+  const [todasAbertas, feitas, projetos, pessoas] = await Promise.all([
+    q.listarTarefasAbertas(),
+    q.listarTarefasFeitas(30),
+    q.listarProjetos(),
+    q.listarPessoas(),
+  ]);
   const nomeProjeto = new Map(projetos.map((p) => [p.id, p.nome]));
   const nomePessoa = new Map(pessoas.map((p) => [p.id, p.nome]));
   const projetoAtual = projeto ? projetos.find((p) => p.id === projeto) : undefined;

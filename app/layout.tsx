@@ -30,17 +30,18 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const janela = janelaAtual();
+  const inbox = await contarInbox();
 
   return (
     <html lang="pt-BR">
       <body className="font-sans text-cream antialiased">
         <div className="mx-auto flex min-h-screen w-full max-w-[1280px]">
           <NavLateral
-            inbox={contarInbox()}
+            inbox={inbox}
             janela={{ label: janelaLabel(janela), orgao: janela.orgao }}
           />
           <main className="min-w-0 flex-1 px-4 pb-28 pt-4 sm:px-6 md:px-8 md:pb-12 md:pt-6">

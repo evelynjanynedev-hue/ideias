@@ -88,10 +88,20 @@ function NovoProjeto() {
   );
 }
 
-export default function ProjetosPage() {
-  const projetos = q.listarProjetos();
-  const progresso = new Map(
-    q.progressoProjetos().map((p) => [p.projeto_id, p]),
+export default async function ProjetosPage() {
+  const [projetos, progressoBruto] = await Promise.all([
+    q.listarProjetos(),
+    q.progressoProjetos(),
+  ]);
+  const progresso = new Map(progressoBruto.map((p) => [p.projeto_id, p]));
+
+  // Carrega as tarefas de cada projeto antes de renderizar (sem await no JSX).
+  const tarefasPorProjeto = new Map(
+    await Promise.all(
+      projetos.map(
+        async (p) => [p.id, (await q.tarefasPorProjeto(p.id)).slice(0, 3)] as const,
+      ),
+    ),
   );
 
   const ativos = projetos.filter((p) => p.status === "ativo").length;
@@ -123,7 +133,7 @@ export default function ProjetosPage() {
           <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
             {projetos.map((p) => {
               const prog = progresso.get(p.id);
-              const tarefas = q.tarefasPorProjeto(p.id).slice(0, 3);
+              const tarefas = tarefasPorProjeto.get(p.id) ?? [];
               const info = STATUS[p.status] ?? STATUS.ativo;
 
               return (

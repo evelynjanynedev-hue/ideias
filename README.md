@@ -16,9 +16,9 @@ Ideias, insights, pessoas, projetos, tarefas e informações — organizados no 
 ![React](https://img.shields.io/badge/React-19-087EA4?style=flat-square&logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![SQLite](https://img.shields.io/badge/libSQL-Turso-4FF8D2?style=flat-square&logo=sqlite&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel-5F7D67?style=flat-square&logo=pwa&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-pronto_para_deploy-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-ready-000000?style=flat-square&logo=vercel&logoColor=white)
 
 </div>
 
@@ -86,7 +86,7 @@ Outros detalhes:
 | App | **Next.js 16** (App Router, React 19, Server Components + Server Actions) | Uma base só para tela e servidor, sem API separada. Rápido de evoluir. |
 | Linguagem | **TypeScript** | Segurança para crescer sem quebrar o que já funciona. |
 | Estilo | **Tailwind CSS 4** | Design consistente sem arquivos CSS espalhados. |
-| Dados | **SQLite nativo do Node** (`node:sqlite`) | Zero instalação, zero Docker, zero conta. O banco é um arquivo em `data/zyra.db`. |
+| Dados | **libSQL / SQLite** (`@libsql/client`) | Zero instalação e zero conta no dev (arquivo `data/zyra.db`); em produção, o mesmo SQL roda no **Turso** com link fixo. |
 | Offline/local | **PWA** (manifest + ícone) | Dá para instalar na tela inicial do celular quando acessado pelo IP do Mac. |
 | Futuro | Postgres/Supabase ou Turso/libSQL | Só quando existir necessidade real de sincronizar entre aparelhos. |
 
@@ -133,31 +133,48 @@ ipconfig getifaddr en0        # pega o IP do Mac
 # no Safari: compartilhar → Adicionar à Tela de Início
 ```
 
-> O app **não tem login**. Não exponha na internet sem adicionar autenticação e HTTPS.
+> Localmente o app **não tem login**. Em produção, ative a senha com `ZYRA_PASSWORD` e use HTTPS.
 
 ---
 
 ## Deploy em produção
 
-O app roda em um servidor Node único com SQLite em arquivo. Para ter **link fixo** e **banco persistente**, use um host que rode Docker **com um volume montado em `/data`** — Railway, Render, Fly.io ou um VPS.
+Dois caminhos, ambos com **link fixo** e **banco persistente**:
+
+| Caminho | Banco | Ideal para |
+|---|---|---|
+| **Vercel + Turso** | libSQL remoto | Grátis, link `*.vercel.app`, sem manutenção |
+| **Docker + volume** | arquivo SQLite em `/data` | VPS, Railway, Render, Fly.io |
 
 ```bash
-docker compose up -d --build     # sobe com volume persistente e banco zerado
+# Vercel + Turso
+turso db create zyra --location iad     # banco zerado
+vercel env add ZYRA_DB_URL production   # libsql://...
+vercel env add ZYRA_DB_AUTH_TOKEN production
+vercel env add ZYRA_PASSWORD production
+vercel --prod
+```
+
+```bash
+# Docker com volume persistente (banco em arquivo)
+docker compose up -d --build
 ```
 
 Principais variáveis:
 
 | Variável | Padrão | Para que serve |
 |---|---|---|
-| `ZYRA_DATA_DIR` | `./data` | Pasta do SQLite. Em produção: `/data`. |
+| `ZYRA_DB_URL` | — | URL do banco remoto (Turso). Sem ela, usa arquivo local. |
+| `ZYRA_DB_AUTH_TOKEN` | — | Token do Turso. |
+| `ZYRA_DATA_DIR` | `./data` | Pasta do SQLite local. Em Docker: `/data`. |
 | `ZYRA_SEED` | `0` em produção | `0` = **banco zerado**; `1` = dados de exemplo. |
 | `ZYRA_PASSWORD` | vazio | Ativa HTTP Basic Auth. **Defina em produção.** |
 | `ZYRA_USER` | `zyra` | Usuário do Basic Auth. |
 | `PORT` | `3001` | Porta do servidor. |
 
-O guia completo (Railway, Render, Fly.io, VPS, backup e checklist de segurança) está em **[DEPLOY.md](DEPLOY.md)**.
+O guia completo (Turso, Vercel, Railway, Render, Fly.io, VPS, backup e checklist de segurança) está em **[DEPLOY.md](DEPLOY.md)**.
 
-Healthcheck: `GET /api/health` → `{ "ok": true, "banco": "/data", "tarefas": 0 }`.
+Healthcheck: `GET /api/health` → `{ "ok": true, "banco": "remoto (libSQL)", "tarefas": 0 }`.
 
 > Sem `ZYRA_PASSWORD`, o app fica aberto para quem tiver o link. Com ela, o navegador pede usuário e senha antes de qualquer página.
 
@@ -203,7 +220,7 @@ app/
   layout.tsx        # navegação, metadados e PWA
   globals.css       # tema (papel, tinta e ouro)
 lib/
-  db.ts             # schema + seed do SQLite
+  db.ts             # schema, seed e cliente libSQL (arquivo local ou Turso)
   queries.ts        # leituras
   janelas.ts        # dados do relógio dos órgãos
   format.ts         # datas em pt-BR
@@ -224,8 +241,9 @@ Para trocar o nome exibido, edite `lib/config.ts`.
 
 ## Dados, privacidade e backup
 
-- O banco fica em `data/zyra.db` e **não é versionado** (`.gitignore`).
-- Não há login, rastreamento ou chamada para serviços externos.
+- No dev, o banco fica em `data/zyra.db` e **não é versionado** (`.gitignore`).
+- Em produção, o banco fica no Turso (libSQL remoto) — mesmas tabelas, mesmo SQL.
+- Não há rastreamento nem chamada para serviços externos além do próprio banco.
 - Em produção, ative a senha com `ZYRA_PASSWORD` — o `proxy.ts` protege todas as páginas com HTTP Basic Auth.
 - Para trocar o diretório dos dados, defina `ZYRA_DATA_DIR`.
 
@@ -245,7 +263,7 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 2. Editar tarefas/notas e busca global (hoje só cria, conclui e exclui).
 3. PWA offline de verdade (service worker) e atalho de captura.
 4. Processamento assistido por IA: transformar um despejo de ideias em sugestões de tarefas/notas — sempre com revisão humana.
-5. Sincronização entre Mac e celular (Turso/libSQL ou Supabase) + login.
+5. Login multiusuário (hoje há uma senha única) e sincronização entre aparelhos — já garantida pelo Turso.
 6. Exportar tudo em Markdown para nunca ficar preso ao app.
 
 ---
@@ -260,6 +278,7 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 - [x] Revisão semanal
 - [x] Backup local
 - [x] PWA instalável
+- [x] Deploy online com banco persistente (Vercel + Turso) e senha
 
 ---
 

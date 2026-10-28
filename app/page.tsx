@@ -100,27 +100,43 @@ function Alerta({
   );
 }
 
-export default function HojePage() {
+export default async function HojePage() {
   const agora = new Date();
   const janela = janelaAtual(agora);
   const proximas = proximasJanelas(3, agora);
   const proxima = proximas[0];
 
-  const rituais = q.rituaisHoje();
+  const [
+    rituais,
+    rituaisHoje,
+    foco,
+    atrasadas,
+    tarefasHoje,
+    abertas,
+    inbox,
+    pessoas,
+    semAcao,
+    tarefasJanela,
+    projetos,
+    todasPessoas,
+  ] = await Promise.all([
+    q.rituaisHoje(),
+    q.contarRituaisHoje(),
+    q.tarefasFoco(),
+    q.tarefasAtrasadas(),
+    q.tarefasDeHoje(),
+    q.listarTarefasAbertas(),
+    q.contarInbox(),
+    q.pessoasParaRetomar(3),
+    q.projetosSemProximaAcao(),
+    q.tarefasDaJanela(janela.key),
+    q.listarProjetos(),
+    q.listarPessoas(),
+  ]);
+
   const ritualFeito = rituais.has(janela.key);
-  const { feitos: rituaisFeitos } = q.contarRituaisHoje();
+  const { feitos: rituaisFeitos } = rituaisHoje;
 
-  const foco = q.tarefasFoco();
-  const atrasadas = q.tarefasAtrasadas();
-  const tarefasHoje = q.tarefasDeHoje();
-  const abertas = q.listarTarefasAbertas();
-  const inbox = q.contarInbox();
-  const pessoas = q.pessoasParaRetomar(3);
-  const semAcao = q.projetosSemProximaAcao();
-  const tarefasJanela = q.tarefasDaJanela(janela.key);
-
-  const projetos = q.listarProjetos();
-  const todasPessoas = q.listarPessoas();
   const nomeProjeto = new Map(projetos.map((p) => [p.id, p.nome]));
   const nomePessoa = new Map(todasPessoas.map((p) => [p.id, p.nome]));
   const projetosAtivos = projetos.filter((p) => p.status === "ativo").length;

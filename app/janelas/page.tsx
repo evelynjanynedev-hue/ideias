@@ -7,12 +7,15 @@ import * as q from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-export default function JanelasPage() {
+export default async function JanelasPage() {
   const agora = new Date();
   const atual = janelaAtual(agora);
-  const rituais = q.rituaisHoje();
-  const { feitos } = q.contarRituaisHoje();
-  const tarefas = q.listarTarefasAbertas();
+  const [rituais, rituaisHoje, tarefas] = await Promise.all([
+    q.rituaisHoje(),
+    q.contarRituaisHoje(),
+    q.listarTarefasAbertas(),
+  ]);
+  const { feitos } = rituaisHoje;
 
   return (
     <div>

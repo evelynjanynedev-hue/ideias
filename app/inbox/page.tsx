@@ -13,11 +13,15 @@ const Destino: Record<string, { label: string; tone: "ouro" | "lilas" | "verde" 
   projeto: { label: "projeto", tone: "rosa" },
 };
 
-export default function InboxPage() {
-  const itens = q.listarInbox();
-  const processados = q.listarProcessados(10);
-  const pessoas = q.listarPessoas().map((p) => ({ id: p.id, nome: p.nome }));
-  const projetos = q.listarProjetos().map((p) => ({ id: p.id, nome: p.nome }));
+export default async function InboxPage() {
+  const [itens, processados, listaPessoas, listaProjetos] = await Promise.all([
+    q.listarInbox(),
+    q.listarProcessados(10),
+    q.listarPessoas(),
+    q.listarProjetos(),
+  ]);
+  const pessoas = listaPessoas.map((p) => ({ id: p.id, nome: p.nome }));
+  const projetos = listaProjetos.map((p) => ({ id: p.id, nome: p.nome }));
 
   return (
     <div>

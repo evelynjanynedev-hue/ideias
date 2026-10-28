@@ -1,81 +1,122 @@
 # Deploy em produção
 
-O app é um servidor Node único com SQLite em arquivo. Para ter **link fixo** e **banco persistente**, o requisito é simples: um host que rode Docker (ou Node 22+) **com um volume montado em `/data`**.
+Duas formas de rodar o Zyra com **link fixo** e **banco persistente**:
 
-> Importante: Vercel, Netlify e similares **não servem** para este app como está — o sistema de arquivos é efêmero e o `data/zyra.db` seria apagado a cada deploy. Use um host com disco/volume.
-
-## Variáveis de ambiente
-
-| Variável | Padrão | Para que serve |
+| Caminho | Banco | Ideal para |
 |---|---|---|
-| `ZYRA_DATA_DIR` | `./data` | Pasta do SQLite. Em produção: `/data` (volume). |
-| `ZYRA_SEED` | ligado em dev, desligado em prod | `0` nasce com **banco zerado** (sem exemplos); `1` semeia demonstração. |
-| `ZYRA_USER` | `zyra` | Usuário do HTTP Basic Auth. |
-| `ZYRA_PASSWORD` | vazio (sem login) | **Defina em produção.** Ativa a proteção por senha. |
-| `PORT` | `3001` | Porta do servidor (o Docker já usa 3001). |
+| **Vercel + Turso** | libSQL remoto (Turso) | Grátis, link fixo `*.vercel.app`, zero manutenção |
+| **Docker + volume** | arquivo SQLite em `/data` | VPS, Railway, Render, Fly.io |
 
-## Opção 1 — Railway (recomendado)
+O banco é sempre libSQL/SQLite — muda só onde o arquivo mora.
 
-Link fixo `*.up.railway.app`, volume persistente e deploy direto do GitHub.
+---
 
-```bash
-npm i -g @railway/cli
-railway login
-railway init                     # cria o projeto
-railway volume add -m /data      # volume persistente
-railway variables \
-  --set 'ZYRA_DATA_DIR=/data' \
-  --set 'ZYRA_SEED=0' \
-  --set 'ZYRA_USER=zyra' \
-  --set 'ZYRA_PASSWORD=SUA-SENHA-FORTE'
-railway up                       # build pelo Dockerfile
-railway domain                   # gera o domínio fixo
-```
+## Opção 1 — Vercel + Turso (recomendado, grátis)
 
-O `railway.json` já configura o healthcheck em `/api/health` e o build pelo `Dockerfile`.
-
-## Opção 2 — Render
-
-O `render.yaml` já descreve o serviço e o disco.
-
-1. New → Blueprint → selecione o repositório.
-2. Defina `ZYRA_PASSWORD` no dashboard quando pedir.
-3. Deploy. O link fica `https://zyra.onrender.com` (fixo).
-
-> No Render, disco persistente exige plano **Starter** (o free não tem disco).
-
-## Opção 3 — Fly.io
+### 1. Criar o banco no Turso
 
 ```bash
-fly launch --no-deploy          # gera fly.toml
-fly volumes create zyra_data --size 1
-fly secrets set ZYRA_DATA_DIR=/data ZYRA_SEED=0 ZYRA_USER=zyra ZYRA_PASSWORD=SUA-SENHA
-fly deploy
+brew install tursodatabase/tap/turso
+turso auth login
+turso db create zyra --location iad    # iad = us-east, mesma região padrão da Vercel
+turso db show zyra --url               # copie a URL libsql://...
+turso db tokens create zyra            # copie o token
 ```
 
-No `fly.toml`, garanta `[mounts] source = "zyra_data"` e `destination = "/data"`, e `internal_port = 3001`.
+> `turso db create` já cria o banco **zerado**. O app cria as tabelas no primeiro acesso.
 
-## Opção 4 — VPS / Docker Compose
+### 2. Publicar na Vercel
+
+```bash
+npm i -g vercel
+vercel login
+vercel link
+
+# Variáveis de produção
+vercel env add ZYRA_DB_URL production          # libsql://zyra-....turso.io
+vercel env add ZYRA_DB_AUTH_TOKEN production   # token do Turso
+vercel env add ZYRA_SEED production            # 0
+vercel env add ZYRA_USER production            # zyra
+vercel env add ZYRA_PASSWORD production        # senha forte
+
+vercel --prod
+```
+
+O link final é fixo: `https://<projeto>.vercel.app`.
+
+### 3. Conferir
+
+```bash
+curl https://SEU-LINK.vercel.app/api/health
+# {"ok":true,"banco":"remoto (libSQL)","tarefas":0,...}
+```
+
+Abra o link: o navegador pede usuário (`zyra`) e a senha definida. O app começa vazio.
+
+---
+
+## Opção 2 — Docker com volume
+
+Para VPS, Railway, Render ou Fly.io. Nesse modo o banco é um arquivo dentro do volume.
 
 ```bash
 cp .env.example .env      # edite a senha
 docker compose up -d --build
 ```
 
-O volume nomeado `zyra-data` sobrevive a reinícios e rebuilds.
+O volume nomeado `zyra-data` sobrevive a reinícios e rebuilds. Para HTTPS, coloque um proxy (Caddy, Nginx ou Traefik) na frente da porta 3001.
 
-Para HTTPS, coloque um proxy (Caddy, Nginx ou Traefik) na frente apontando para a porta 3001.
+### Railway
+
+```bash
+npm i -g @railway/cli
+railway login
+railway init
+railway volume add -m /data
+railway variables \
+  --set 'ZYRA_DATA_DIR=/data' \
+  --set 'ZYRA_SEED=0' \
+  --set 'ZYRA_USER=zyra' \
+  --set 'ZYRA_PASSWORD=SUA-SENHA-FORTE'
+railway up
+railway domain
+```
+
+### Render
+
+O `render.yaml` já descreve serviço + disco. New → Blueprint → selecione o repositório → defina `ZYRA_PASSWORD`. Disco persistente exige plano **Starter**.
+
+### Fly.io
+
+```bash
+fly launch --no-deploy
+fly volumes create zyra_data --size 1
+fly secrets set ZYRA_DATA_DIR=/data ZYRA_SEED=0 ZYRA_USER=zyra ZYRA_PASSWORD=SUA-SENHA
+fly deploy
+```
+
+Garanta no `fly.toml`: `[mounts] source = "zyra_data"`, `destination = "/data"` e `internal_port = 3001`.
+
+---
+
+## Variáveis de ambiente
+
+| Variável | Padrão | Para que serve |
+|---|---|---|
+| `ZYRA_DB_URL` | — | URL do banco remoto (`libsql://...`). Também aceita `TURSO_DATABASE_URL`. |
+| `ZYRA_DB_AUTH_TOKEN` | — | Token do Turso. Também aceita `TURSO_AUTH_TOKEN`. |
+| `ZYRA_DATA_DIR` | `./data` | Pasta do SQLite local (quando não há `ZYRA_DB_URL`). |
+| `ZYRA_SEED` | `0` em produção | `0` = **banco zerado**; `1` = dados de exemplo. |
+| `ZYRA_USER` | `zyra` | Usuário do HTTP Basic Auth. |
+| `ZYRA_PASSWORD` | vazio (sem login) | **Defina em produção.** Ativa a proteção por senha. |
+| `PORT` | `3001` | Porta do servidor (Docker). |
+
+---
 
 ## Banco zerado
 
-O primeiro boot em produção cria o schema e **não** insere os dados de exemplo. Se o volume já tiver um `zyra.db`, ele é reaproveitado — para começar do zero de novo, apague o arquivo dentro do volume:
-
-```bash
-# Railway (exemplo, via shell do serviço)
-rm -f /data/zyra.db /data/zyra.db-shm /data/zyra.db-wal
-```
-
-Equivalente em Docker:
+- **Turso**: `turso db create` nasce vazio. Para zerar de novo: `turso db shell zyra` e rode os `DROP TABLE`s, ou apague e recrie o banco.
+- **Docker**: apague o arquivo dentro do volume
 
 ```bash
 docker compose down
@@ -83,20 +124,31 @@ docker volume rm organizacao-pessoal_zyra-data
 docker compose up -d
 ```
 
-## Backup em produção
+O app nunca semeia exemplos em produção (`NODE_ENV=production` ou `ZYRA_SEED=0`).
+
+---
+
+## Backup
+
+**Turso**
 
 ```bash
-# Railway
-railway ssh
-sqlite3 /data/zyra.db ".backup '/data/backup.db'"
+turso db dump zyra > backups/zyra-$(date +%Y%m%d).sql
 ```
 
-Ou baixe o arquivo e guarde fora do servidor. O banco é um arquivo só.
+**Docker / arquivo**
+
+```bash
+docker compose exec zyra node -e "0"   # garante o container de pé
+sqlite3 data/zyra.db ".backup 'backups/zyra.db'"
+```
+
+---
 
 ## Checklist antes de divulgar o link
 
-- [ ] `ZYRA_PASSWORD` definida (sem ela, o app fica aberto).
-- [ ] `ZYRA_SEED=0` para nascer sem exemplos.
-- [ ] Volume montado em `/data` — confira em `/api/health`.
-- [ ] HTTPS ativo (Railway/Render/Fly já entregam).
+- [ ] `ZYRA_PASSWORD` definida (sem ela o app fica aberto).
+- [ ] `ZYRA_SEED=0` — banco zerado, sem exemplos.
+- [ ] `/api/health` responde `ok: true` com `tarefas: 0`.
+- [ ] HTTPS ativo (Vercel/Turso e Railway/Render/Fly já entregam).
 - [ ] Backup testado.

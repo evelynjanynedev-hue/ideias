@@ -63,14 +63,17 @@ function Pendencia({
   );
 }
 
-export default function RevisaoPage() {
-  const resumo = q.resumoRevisao();
-  const notas = q.notasDaSemana();
-  const exemplos = q.contarExemplos();
-  const revisoes = q.contarRevisoes();
-  const projetos = q.projetosSemProximaAcao();
-  const pessoas = q.pessoasParaRetomar(3);
-  const atrasadas = q.tarefasAtrasadas();
+export default async function RevisaoPage() {
+  const [resumo, notas, exemplos, revisoes, projetos, pessoas, atrasadas] =
+    await Promise.all([
+      q.resumoRevisao(),
+      q.notasDaSemana(),
+      q.contarExemplos(),
+      q.contarRevisoes(),
+      q.projetosSemProximaAcao(),
+      q.pessoasParaRetomar(3),
+      q.tarefasAtrasadas(),
+    ]);
   const h = hoje();
 
   const tudoEmDia =

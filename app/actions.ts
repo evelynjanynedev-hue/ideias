@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
+import { executar, um } from "@/lib/db";
 import { agoraISO, hoje } from "@/lib/format";
 
 const texto = (fd: FormData, chave: string) =>
@@ -26,10 +26,14 @@ export async function capturar(fd: FormData) {
   const conteudo = texto(fd, "texto");
   if (!conteudo) return;
 
-  db.prepare(
+  await executar(
     `INSERT INTO itens (id, texto, fonte, status, demo, criado_em)
      VALUES (?, ?, ?, 'inbox', 0, ?)`,
-  ).run(novoId(), conteudo, opcional(fd, "fonte") ?? "captura rápida", agoraISO());
+    novoId(),
+    conteudo,
+    opcional(fd, "fonte") ?? "captura rápida",
+    agoraISO(),
+  );
 
   atualizar();
 }
@@ -37,14 +41,14 @@ export async function capturar(fd: FormData) {
 export async function arquivarItem(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("UPDATE itens SET status = 'arquivado' WHERE id = ?").run(id);
+  await executar("UPDATE itens SET status = 'arquivado' WHERE id = ?", id);
   atualizar();
 }
 
 export async function excluirItem(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("DELETE FROM itens WHERE id = ?").run(id);
+  await executar("DELETE FROM itens WHERE id = ?", id);
   atualizar();
 }
 
@@ -59,11 +63,10 @@ export async function processarItem(fd: FormData) {
 
   if (tipo === "tarefa") {
     destinoId = novoId();
-    db.prepare(
+    await executar(
       `INSERT INTO tarefas
         (id, titulo, notas, status, prioridade, foco, area, projeto_id, pessoa_id, janela, vence_em, criado_em, demo)
        VALUES (?, ?, ?, 'aberta', ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-    ).run(
       destinoId,
       texto(fd, "titulo") || "Tarefa sem título",
       opcional(fd, "notas"),
@@ -78,10 +81,9 @@ export async function processarItem(fd: FormData) {
     );
   } else if (tipo === "nota") {
     destinoId = novoId();
-    db.prepare(
+    await executar(
       `INSERT INTO notas (id, titulo, corpo, tipo, area, tags, pessoa_id, projeto_id, criado_em, demo)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-    ).run(
       destinoId,
       opcional(fd, "titulo"),
       texto(fd, "corpo") || "Sem conteúdo",
@@ -94,11 +96,10 @@ export async function processarItem(fd: FormData) {
     );
   } else if (tipo === "pessoa") {
     destinoId = novoId();
-    db.prepare(
+    await executar(
       `INSERT INTO pessoas
         (id, nome, contexto, area, proximo_passo, proximo_em, criado_em, demo)
        VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-    ).run(
       destinoId,
       texto(fd, "nome") || "Sem nome",
       opcional(fd, "contexto"),
@@ -109,10 +110,9 @@ export async function processarItem(fd: FormData) {
     );
   } else if (tipo === "projeto") {
     destinoId = novoId();
-    db.prepare(
+    await executar(
       `INSERT INTO projetos (id, nome, resultado, area, status, proxima_acao, criado_em, demo)
        VALUES (?, ?, ?, ?, 'ativo', ?, ?, 0)`,
-    ).run(
       destinoId,
       texto(fd, "nome") || "Projeto sem nome",
       opcional(fd, "resultado"),
@@ -124,9 +124,12 @@ export async function processarItem(fd: FormData) {
     return;
   }
 
-  db.prepare(
+  await executar(
     "UPDATE itens SET status = 'processado', destino_tipo = ?, destino_id = ? WHERE id = ?",
-  ).run(tipo, destinoId, itemId);
+    tipo,
+    destinoId,
+    itemId,
+  );
 
   atualizar();
 }
@@ -137,11 +140,10 @@ export async function criarTarefa(fd: FormData) {
   const titulo = texto(fd, "titulo");
   if (!titulo) return;
 
-  db.prepare(
+  await executar(
     `INSERT INTO tarefas
       (id, titulo, notas, status, prioridade, foco, area, projeto_id, pessoa_id, janela, vence_em, criado_em, demo)
      VALUES (?, ?, NULL, 'aberta', ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-  ).run(
     novoId(),
     titulo,
     numero(fd, "prioridade", 3),
@@ -160,19 +162,23 @@ export async function criarTarefa(fd: FormData) {
 export async function alternarTarefa(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  const tarefa = db.prepare("SELECT status FROM tarefas WHERE id = ?").get(id) as
-    | { status: string }
-    | undefined;
+  const tarefa = await um<{ status: string }>(
+    "SELECT status FROM tarefas WHERE id = ?",
+    id,
+  );
   if (!tarefa) return;
 
   if (tarefa.status === "feita") {
-    db.prepare(
+    await executar(
       "UPDATE tarefas SET status = 'aberta', concluido_em = NULL WHERE id = ?",
-    ).run(id);
+      id,
+    );
   } else {
-    db.prepare(
+    await executar(
       "UPDATE tarefas SET status = 'feita', concluido_em = ?, foco = 0 WHERE id = ?",
-    ).run(agoraISO(), id);
+      agoraISO(),
+      id,
+    );
   }
   atualizar();
 }
@@ -180,25 +186,23 @@ export async function alternarTarefa(fd: FormData) {
 export async function alternarFoco(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  const tarefa = db.prepare("SELECT foco FROM tarefas WHERE id = ?").get(id) as
-    | { foco: number }
-    | undefined;
+  const tarefa = await um<{ foco: number }>("SELECT foco FROM tarefas WHERE id = ?", id);
   if (!tarefa) return;
 
   if (tarefa.foco) {
-    db.prepare("UPDATE tarefas SET foco = 0 WHERE id = ?").run(id);
+    await executar("UPDATE tarefas SET foco = 0 WHERE id = ?", id);
   } else {
-    const ativos = db.prepare(
+    const ativos = await um<{ n: number }>(
       "SELECT COUNT(*) AS n FROM tarefas WHERE status = 'aberta' AND foco = 1",
-    ).get() as { n: number };
-    if (ativos.n >= 3) {
-      db.prepare(
+    );
+    if ((ativos?.n ?? 0) >= 3) {
+      await executar(
         `UPDATE tarefas SET foco = 0 WHERE id = (
            SELECT id FROM tarefas WHERE status = 'aberta' AND foco = 1 ORDER BY criado_em ASC LIMIT 1
          )`,
-      ).run();
+      );
     }
-    db.prepare("UPDATE tarefas SET foco = 1 WHERE id = ?").run(id);
+    await executar("UPDATE tarefas SET foco = 1 WHERE id = ?", id);
   }
   atualizar();
 }
@@ -206,7 +210,7 @@ export async function alternarFoco(fd: FormData) {
 export async function excluirTarefa(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("DELETE FROM tarefas WHERE id = ?").run(id);
+  await executar("DELETE FROM tarefas WHERE id = ?", id);
   atualizar();
 }
 
@@ -218,7 +222,7 @@ export async function adiarTarefa(fd: FormData) {
   const iso = `${amanha.getFullYear()}-${String(amanha.getMonth() + 1).padStart(2, "0")}-${String(
     amanha.getDate(),
   ).padStart(2, "0")}`;
-  db.prepare("UPDATE tarefas SET vence_em = ? WHERE id = ?").run(iso, id);
+  await executar("UPDATE tarefas SET vence_em = ? WHERE id = ?", iso, id);
   atualizar();
 }
 
@@ -228,10 +232,9 @@ export async function criarNota(fd: FormData) {
   const corpo = texto(fd, "corpo");
   if (!corpo) return;
 
-  db.prepare(
+  await executar(
     `INSERT INTO notas (id, titulo, corpo, tipo, area, tags, criado_em, demo)
      VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-  ).run(
     novoId(),
     opcional(fd, "titulo"),
     corpo,
@@ -247,7 +250,7 @@ export async function criarNota(fd: FormData) {
 export async function excluirNota(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("DELETE FROM notas WHERE id = ?").run(id);
+  await executar("DELETE FROM notas WHERE id = ?", id);
   atualizar();
 }
 
@@ -257,11 +260,10 @@ export async function criarPessoa(fd: FormData) {
   const nome = texto(fd, "nome");
   if (!nome) return;
 
-  db.prepare(
+  await executar(
     `INSERT INTO pessoas
       (id, nome, contexto, area, email, telefone, proximo_passo, proximo_em, notas, criado_em, demo)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-  ).run(
     novoId(),
     nome,
     opcional(fd, "contexto"),
@@ -280,18 +282,20 @@ export async function criarPessoa(fd: FormData) {
 export async function registrarContato(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare(
+  await executar(
     "UPDATE pessoas SET ultimo_contato = ?, proximo_em = NULL WHERE id = ?",
-  ).run(agoraISO(), id);
+    agoraISO(),
+    id,
+  );
   atualizar();
 }
 
 export async function excluirPessoa(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("UPDATE tarefas SET pessoa_id = NULL WHERE pessoa_id = ?").run(id);
-  db.prepare("UPDATE notas SET pessoa_id = NULL WHERE pessoa_id = ?").run(id);
-  db.prepare("DELETE FROM pessoas WHERE id = ?").run(id);
+  await executar("UPDATE tarefas SET pessoa_id = NULL WHERE pessoa_id = ?", id);
+  await executar("UPDATE notas SET pessoa_id = NULL WHERE pessoa_id = ?", id);
+  await executar("DELETE FROM pessoas WHERE id = ?", id);
   atualizar();
 }
 
@@ -301,10 +305,9 @@ export async function criarProjeto(fd: FormData) {
   const nome = texto(fd, "nome");
   if (!nome) return;
 
-  db.prepare(
+  await executar(
     `INSERT INTO projetos (id, nome, resultado, area, status, proxima_acao, criado_em, demo)
      VALUES (?, ?, ?, ?, 'ativo', ?, ?, 0)`,
-  ).run(
     novoId(),
     nome,
     opcional(fd, "resultado"),
@@ -319,7 +322,8 @@ export async function criarProjeto(fd: FormData) {
 export async function definirProximaAcao(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("UPDATE projetos SET proxima_acao = ? WHERE id = ?").run(
+  await executar(
+    "UPDATE projetos SET proxima_acao = ? WHERE id = ?",
     opcional(fd, "proxima_acao"),
     id,
   );
@@ -330,16 +334,16 @@ export async function mudarStatusProjeto(fd: FormData) {
   const id = texto(fd, "id");
   const status = texto(fd, "status");
   if (!id || !["ativo", "pausado", "concluido"].includes(status)) return;
-  db.prepare("UPDATE projetos SET status = ? WHERE id = ?").run(status, id);
+  await executar("UPDATE projetos SET status = ? WHERE id = ?", status, id);
   atualizar();
 }
 
 export async function excluirProjeto(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
-  db.prepare("UPDATE tarefas SET projeto_id = NULL WHERE projeto_id = ?").run(id);
-  db.prepare("UPDATE notas SET projeto_id = NULL WHERE projeto_id = ?").run(id);
-  db.prepare("DELETE FROM projetos WHERE id = ?").run(id);
+  await executar("UPDATE tarefas SET projeto_id = NULL WHERE projeto_id = ?", id);
+  await executar("UPDATE notas SET projeto_id = NULL WHERE projeto_id = ?", id);
+  await executar("DELETE FROM projetos WHERE id = ?", id);
   atualizar();
 }
 
@@ -349,38 +353,47 @@ export async function alternarRitual(fd: FormData) {
   const janela = texto(fd, "janela");
   if (!janela) return;
 
-  const atual = db
-    .prepare("SELECT id, feito FROM rituais WHERE data = ? AND janela = ?")
-    .get(hoje(), janela) as { id: string; feito: number } | undefined;
+  const atual = await um<{ id: string; feito: number }>(
+    "SELECT id, feito FROM rituais WHERE data = ? AND janela = ?",
+    hoje(),
+    janela,
+  );
 
   if (atual) {
-    db.prepare("UPDATE rituais SET feito = ? WHERE id = ?").run(
+    await executar(
+      "UPDATE rituais SET feito = ? WHERE id = ?",
       atual.feito ? 0 : 1,
       atual.id,
     );
   } else {
-    db.prepare(
+    await executar(
       "INSERT INTO rituais (id, data, janela, feito) VALUES (?, ?, ?, 1)",
-    ).run(novoId(), hoje(), janela);
+      novoId(),
+      hoje(),
+      janela,
+    );
   }
 
   atualizar();
 }
 
 export async function fecharRevisao() {
-  db.prepare(
+  await executar(
     "INSERT INTO revisoes (id, data, criado_em) VALUES (?, ?, ?) ON CONFLICT(data) DO NOTHING",
-  ).run(novoId(), hoje(), agoraISO());
+    novoId(),
+    hoje(),
+    agoraISO(),
+  );
   atualizar();
 }
 
 /* ---------------- Exemplos ---------------- */
 
 export async function limparExemplos() {
-  db.prepare("DELETE FROM tarefas WHERE demo = 1").run();
-  db.prepare("DELETE FROM notas WHERE demo = 1").run();
-  db.prepare("DELETE FROM itens WHERE demo = 1").run();
-  db.prepare("DELETE FROM projetos WHERE demo = 1").run();
-  db.prepare("DELETE FROM pessoas WHERE demo = 1").run();
+  await executar("DELETE FROM tarefas WHERE demo = 1");
+  await executar("DELETE FROM notas WHERE demo = 1");
+  await executar("DELETE FROM itens WHERE demo = 1");
+  await executar("DELETE FROM projetos WHERE demo = 1");
+  await executar("DELETE FROM pessoas WHERE demo = 1");
   atualizar();
 }

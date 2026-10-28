@@ -77,9 +77,11 @@ function NovaPessoa() {
   );
 }
 
-export default function PessoasPage() {
-  const pessoas = q.listarPessoas();
-  const paraRetomar = q.contarPessoasParaRetomar();
+export default async function PessoasPage() {
+  const [pessoas, paraRetomar] = await Promise.all([
+    q.listarPessoas(),
+    q.contarPessoasParaRetomar(),
+  ]);
   const h = hoje();
 
   return (

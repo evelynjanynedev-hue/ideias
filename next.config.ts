@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Permite acessar o app pelo celular na mesma rede durante o desenvolvimento.
   allowedDevOrigins: ["192.168.1.10"],
-  // SQLite nativo do Node é carregado no servidor; não deve ser empacotado.
-  serverExternalPackages: [],
+  // libSQL usa carregamento dinâmico (arquivo local x Turso); não empacotar.
+  serverExternalPackages: ["@libsql/client"],
 };
 
 export default nextConfig;
