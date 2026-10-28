@@ -1,0 +1,19 @@
+services:
+  zyra:
+    build: .
+    container_name: zyra
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      # Banco zerado: sem dados de exemplo. Remova para semear no primeiro boot.
+      ZYRA_SEED: "0"
+      ZYRA_DATA_DIR: /data
+      ZYRA_USER: ${ZYRA_USER:-zyra}
+      ZYRA_PASSWORD: ${ZYRA_PASSWORD:-}
+    volumes:
+      # Volume nomeado = banco persistente entre reinícios e rebuilds.
+      - zyra-data:/data
+
+volumes:
+  zyra-data:

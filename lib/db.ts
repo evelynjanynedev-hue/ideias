@@ -100,6 +100,17 @@ CREATE INDEX IF NOT EXISTS idx_notas_tipo ON notas (tipo, criado_em);
 CREATE INDEX IF NOT EXISTS idx_rituais_data ON rituais (data);
 `;
 
+/**
+ * O banco nasce vazio em produção; os dados de exemplo só entram quando
+ * `ZYRA_SEED=1` ou fora de produção (desenvolvimento local).
+ */
+function deveSemear(): boolean {
+  const flag = process.env.ZYRA_SEED?.trim().toLowerCase();
+  if (flag === "0" || flag === "false" || flag === "off") return false;
+  if (flag === "1" || flag === "true" || flag === "on") return true;
+  return process.env.NODE_ENV !== "production";
+}
+
 function abrir(): DatabaseSync {
   const dir = process.env.ZYRA_DATA_DIR ?? path.join(process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
@@ -108,7 +119,7 @@ function abrir(): DatabaseSync {
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec("PRAGMA busy_timeout = 4000;");
   db.exec(schema);
-  semear(db);
+  if (deveSemear()) semear(db);
   return db;
 }
 

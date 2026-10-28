@@ -18,6 +18,7 @@ Ideias, insights, pessoas, projetos, tarefas e informações — organizados no 
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel-5F7D67?style=flat-square&logo=pwa&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-pronto_para_deploy-2496ED?style=flat-square&logo=docker&logoColor=white)
 
 </div>
 
@@ -136,6 +137,32 @@ ipconfig getifaddr en0        # pega o IP do Mac
 
 ---
 
+## Deploy em produção
+
+O app roda em um servidor Node único com SQLite em arquivo. Para ter **link fixo** e **banco persistente**, use um host que rode Docker **com um volume montado em `/data`** — Railway, Render, Fly.io ou um VPS.
+
+```bash
+docker compose up -d --build     # sobe com volume persistente e banco zerado
+```
+
+Principais variáveis:
+
+| Variável | Padrão | Para que serve |
+|---|---|---|
+| `ZYRA_DATA_DIR` | `./data` | Pasta do SQLite. Em produção: `/data`. |
+| `ZYRA_SEED` | `0` em produção | `0` = **banco zerado**; `1` = dados de exemplo. |
+| `ZYRA_PASSWORD` | vazio | Ativa HTTP Basic Auth. **Defina em produção.** |
+| `ZYRA_USER` | `zyra` | Usuário do Basic Auth. |
+| `PORT` | `3001` | Porta do servidor. |
+
+O guia completo (Railway, Render, Fly.io, VPS, backup e checklist de segurança) está em **[DEPLOY.md](DEPLOY.md)**.
+
+Healthcheck: `GET /api/health` → `{ "ok": true, "banco": "/data", "tarefas": 0 }`.
+
+> Sem `ZYRA_PASSWORD`, o app fica aberto para quem tiver o link. Com ela, o navegador pede usuário e senha antes de qualquer página.
+
+---
+
 ## As janelas do dia
 
 O app completa as 12 faixas do relógio dos órgãos (a lista original ia até 19h; 19–21 entrou como **Pericárdio** e 21–23 como **Triplo Aquecedor**).
@@ -171,6 +198,7 @@ app/
   projetos/         # resultado + próxima ação + progresso
   janelas/          # as 12 janelas e rituais do dia
   revisao/          # fechamento semanal
+  api/health/       # healthcheck do deploy
   actions.ts        # todas as mutações (server actions)
   layout.tsx        # navegação, metadados e PWA
   globals.css       # tema (papel, tinta e ouro)
@@ -183,6 +211,10 @@ lib/
   types.ts          # tipos compartilhados
 components/         # UI, navegação, captura, processamento
 public/             # ícone e manifest da PWA
+proxy.ts            # HTTP Basic Auth opcional (produção)
+Dockerfile          # imagem de produção (Node + standalone)
+docker-compose.yml  # app + volume persistente
+DEPLOY.md           # guia de deploy
 data/zyra.db        # seu banco (ignorado pelo git)
 ```
 
@@ -194,6 +226,7 @@ Para trocar o nome exibido, edite `lib/config.ts`.
 
 - O banco fica em `data/zyra.db` e **não é versionado** (`.gitignore`).
 - Não há login, rastreamento ou chamada para serviços externos.
+- Em produção, ative a senha com `ZYRA_PASSWORD` — o `proxy.ts` protege todas as páginas com HTTP Basic Auth.
 - Para trocar o diretório dos dados, defina `ZYRA_DATA_DIR`.
 
 O banco é um arquivo só. Com o app parado, copie `data/` inteiro. Ou use:
