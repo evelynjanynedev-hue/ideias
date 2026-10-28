@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f7f3ea;
+  --color-panel: #fffdf9;
+  --color-panel2: #f0eade;
+  --color-line: #e4ddcf;
+  --color-ink: #2c2823;
+  --color-cream: #3b352d;
+  --color-muted: #6f685b;
+  --color-gold: #96613a;
+  --color-goldsoft: #6f4626;
+  --color-sage: #5f7d67;
+  --color-rose: #a5625a;
+  --color-lilac: #7d7297;
+
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background:
+      radial-gradient(1100px 620px at 88% -12%, rgba(199, 166, 122, 0.2), transparent 62%),
+      radial-gradient(900px 540px at -5% 105%, rgba(143, 163, 143, 0.16), transparent 60%),
+      radial-gradient(700px 500px at 55% 45%, rgba(173, 157, 190, 0.06), transparent 72%),
+      var(--color-paper);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(150, 97, 58, 0.16);
+    color: var(--color-ink);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker,
+  summary::marker {
+    display: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(150, 97, 58, 0.45);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d9d1c1;
+    border-radius: 999px;
+    border: 3px solid var(--color-paper);
+  }
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-lg border border-line bg-white/75 px-3 py-2 text-sm text-cream placeholder:text-muted/60 outline-none transition;
+  }
+  .field:focus {
+    @apply border-gold/50 ring-2 ring-gold/10;
+  }
+
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition select-none disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-gold {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition select-none disabled:cursor-not-allowed disabled:opacity-50 bg-gold text-[#fffdf8] hover:bg-goldsoft;
+  }
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition select-none disabled:cursor-not-allowed disabled:opacity-50 border border-line bg-white/60 text-cream hover:border-gold/35 hover:bg-white;
+  }
+  .btn-quiet {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted transition select-none disabled:cursor-not-allowed disabled:opacity-50 hover:bg-panel2 hover:text-cream;
+  }
+  .btn-danger {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted transition select-none disabled:cursor-not-allowed disabled:opacity-50 hover:bg-rose/10 hover:text-rose;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line bg-white/60 px-2 py-0.5 text-[11px] leading-5 text-muted;
+  }
+
+  .card {
+    @apply rounded-card border border-line bg-panel/85;
+    box-shadow:
+      0 1px 2px rgba(63, 52, 38, 0.03),
+      0 12px 32px -26px rgba(63, 52, 38, 0.4);
+  }
+
+  .label {
+    @apply mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-muted;
+  }
+
+  .link-quiet {
+    @apply text-muted transition hover:text-gold;
+  }
+}
