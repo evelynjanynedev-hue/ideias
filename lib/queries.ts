@@ -5,7 +5,9 @@ import type {
   Nota,
   Pessoa,
   ProgressoProjeto,
+  ProgressoSprint,
   Projeto,
+  Sprint,
   Tarefa,
 } from "./types";
 
@@ -245,6 +247,82 @@ export async function resumoRevisao(): Promise<{
     projetosSemAcao: projetos.length,
     notasSemana: notas.length,
     ultima,
+  };
+}
+
+/* ---------- Scrum / sprints ---------- */
+
+export async function sprintAtiva(): Promise<Sprint | undefined> {
+  return um<Sprint>(
+    "SELECT * FROM sprints WHERE status = 'ativa' ORDER BY inicio DESC LIMIT 1",
+  );
+}
+
+export async function listarSprints(): Promise<Sprint[]> {
+  return todos<Sprint>(
+    `SELECT * FROM sprints
+     ORDER BY CASE status WHEN 'ativa' THEN 0 WHEN 'planejada' THEN 1 ELSE 2 END,
+              inicio DESC`,
+  );
+}
+
+export async function sprintsConcluidas(limite = 6): Promise<Sprint[]> {
+  return todos<Sprint>(
+    "SELECT * FROM sprints WHERE status = 'concluida' ORDER BY fim DESC LIMIT ?",
+    limite,
+  );
+}
+
+export async function sprintPorId(id: string): Promise<Sprint | undefined> {
+  return um<Sprint>("SELECT * FROM sprints WHERE id = ?", id);
+}
+
+export async function tarefasDoSprint(sprintId: string): Promise<Tarefa[]> {
+  return todos<Tarefa>(
+    `SELECT * FROM tarefas WHERE sprint_id = ?
+     ORDER BY status ASC, prioridade ASC, criado_em ASC`,
+    sprintId,
+  );
+}
+
+export async function backlog(): Promise<Tarefa[]> {
+  return todos<Tarefa>(
+    `SELECT * FROM tarefas
+     WHERE status = 'aberta' AND sprint_id IS NULL
+     ORDER BY prioridade ASC, criado_em ASC`,
+  );
+}
+
+export async function contarBacklog(): Promise<number> {
+  return (
+    (
+      await um<{ n: number }>(
+        "SELECT COUNT(*) AS n FROM tarefas WHERE status = 'aberta' AND sprint_id IS NULL",
+      )
+    )?.n ?? 0
+  );
+}
+
+export async function progressoSprint(sprintId: string): Promise<ProgressoSprint> {
+  const linha = await um<{
+    total: number;
+    feitas: number;
+    pontos_total: number;
+    pontos_feitos: number;
+  }>(
+    `SELECT COUNT(*) AS total,
+            COALESCE(SUM(status = 'feita'), 0) AS feitas,
+            COALESCE(SUM(pontos), 0) AS pontos_total,
+            COALESCE(SUM(CASE WHEN status = 'feita' THEN pontos ELSE 0 END), 0) AS pontos_feitos
+     FROM tarefas WHERE sprint_id = ?`,
+    sprintId,
+  );
+
+  return {
+    total: linha?.total ?? 0,
+    feitas: linha?.feitas ?? 0,
+    pontosTotal: linha?.pontos_total ?? 0,
+    pontosFeitos: linha?.pontos_feitos ?? 0,
   };
 }
 

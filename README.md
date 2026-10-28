@@ -64,6 +64,7 @@ flowchart LR
 | **Hoje** | Janela atual com intenção, tempo restante, as 3 prioridades, captura rápida e alertas do que pede atenção. |
 | **Caixa de entrada** | Captura sem julgar. Cada item vira tarefa, nota, pessoa, projeto — ou é arquivado/excluído. |
 | **Tarefas** | Lista única com filtros por área e projeto, grupos por atraso/hoje/semana, foco, conclusão e adiamento em 1 clique. |
+| **Sprints** | Scrum enxuto: objetivo do sprint, product backlog, story points, board a fazer/feito, encerramento com retrospectiva. |
 | **Notas** | Insights, notas e referências com tags, área e vínculo com pessoas e projetos. |
 | **Pessoas** | Rede com contexto, último contato, próximo passo e data — para não deixar relações esfriarem. |
 | **Projetos** | Resultado esperado, status, próxima ação e progresso a partir das tarefas vinculadas. |
@@ -180,6 +181,29 @@ Healthcheck: `GET /api/health` → `{ "ok": true, "banco": "remoto (libSQL)", "t
 
 ---
 
+## Scrum, do backlog ao sprint
+
+O Scrum aqui é **ritmo**, não burocracia: um sprint por semana, um objetivo por sprint, e o resto espera no backlog.
+
+| Artefato / cerimônia | Onde vive no app |
+|---|---|
+| **Product Backlog** | Tarefas abertas sem sprint, ordenadas por prioridade (`/sprints`) |
+| **Sprint Planning** | Criar o sprint com objetivo e datas, e puxar itens do backlog |
+| **Sprint Backlog** | Itens do sprint com story points (0–21) e progresso em pontos |
+| **Daily** | Tela **Hoje**: janela atual, 3 prioridades e o que pede atenção |
+| **Sprint Review** | **Revisão** semanal (`/revisao`) |
+| **Retrospectiva** | Encerrar o sprint: o que funcionou/travou vira uma nota |
+
+Regras simples:
+
+- **Uma sprint ativa por vez.** As outras ficam planejadas.
+- **Objetivo em uma frase** — se não cabe, o sprint está grande demais.
+- **Story points são estimativa relativa**, não prazo. `0` = trivial, `13` = grande, `21` = quebre em dois.
+- **O que não foi concluído volta para o backlog** ao encerrar — sem carregar peso para o próximo ciclo.
+- A **retrospectiva** é salva como nota e fica no histórico do sprint.
+
+---
+
 ## As janelas do dia
 
 O app completa as 12 faixas do relógio dos órgãos (a lista original ia até 19h; 19–21 entrou como **Pericárdio** e 21–23 como **Triplo Aquecedor**).
@@ -210,6 +234,7 @@ app/
   page.tsx          # Hoje: janela atual, 3 prioridades, captura, alertas
   inbox/            # captura e processamento
   tarefas/          # lista única com filtros e grupos
+  sprints/          # Scrum: sprint ativa, backlog, pontos, retrospectiva
   notas/            # insights, notas e referências
   pessoas/          # rede com contexto e próximo passo
   projetos/         # resultado + próxima ação + progresso
@@ -276,6 +301,7 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 - [x] Pessoas com próximo passo e registro de contato
 - [x] Projetos com próxima ação e progresso
 - [x] Revisão semanal
+- [x] Scrum: sprints, backlog, story points e retrospectiva
 - [x] Backup local
 - [x] PWA instalável
 - [x] Deploy online com banco persistente (Vercel + Turso) e senha

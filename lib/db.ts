@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS tarefas (
   pessoa_id TEXT,
   janela TEXT,
   vence_em TEXT,
+  sprint_id TEXT,
+  pontos INTEGER NOT NULL DEFAULT 0,
   criado_em TEXT NOT NULL,
   concluido_em TEXT,
   demo INTEGER NOT NULL DEFAULT 0
@@ -146,10 +148,24 @@ CREATE TABLE IF NOT EXISTS revisoes (
   criado_em TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS sprints (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL,
+  objetivo TEXT,
+  inicio TEXT NOT NULL,
+  fim TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'planejada',
+  retrospectiva TEXT,
+  criado_em TEXT NOT NULL,
+  demo INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_sprints_status ON sprints (status, inicio);
+CREATE INDEX IF NOT EXISTS idx_notas_tipo ON notas (tipo, criado_em);
+
 CREATE INDEX IF NOT EXISTS idx_itens_status ON itens (status, criado_em);
 CREATE INDEX IF NOT EXISTS idx_tarefas_status ON tarefas (status, vence_em);
 CREATE INDEX IF NOT EXISTS idx_tarefas_projeto ON tarefas (projeto_id);
-CREATE INDEX IF NOT EXISTS idx_notas_tipo ON notas (tipo, criado_em);
 CREATE INDEX IF NOT EXISTS idx_rituais_data ON rituais (data);
 `;
 
@@ -179,8 +195,28 @@ async function inicializar(): Promise<void> {
   }
 
   await db.executeMultiple(schema);
+  await migrar(db);
 
   if (deveSemear()) await semear(db);
+}
+
+/**
+ * Colunas novas em bancos que já existiam (SQLite não tem
+ * `ADD COLUMN IF NOT EXISTS`, então checamos antes).
+ */
+async function migrar(db: Client): Promise<void> {
+  const info = await db.execute("PRAGMA table_info(tarefas)");
+  const colunas = new Set(info.rows.map((linha) => String(linha.name)));
+
+  if (!colunas.has("sprint_id")) {
+    await db.execute("ALTER TABLE tarefas ADD COLUMN sprint_id TEXT");
+  }
+  if (!colunas.has("pontos")) {
+    await db.execute("ALTER TABLE tarefas ADD COLUMN pontos INTEGER NOT NULL DEFAULT 0");
+  }
+
+  // Só depois de garantir a coluna é possível indexá-la.
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_tarefas_sprint ON tarefas (sprint_id)");
 }
 
 /** Garante schema + seed uma única vez por processo. */

@@ -10,6 +10,7 @@ const ITENS: ItemNav[] = [
   { href: "/", nome: "Hoje", icone: "hoje" },
   { href: "/inbox", nome: "Caixa de entrada", icone: "inbox" },
   { href: "/tarefas", nome: "Tarefas", icone: "tarefas" },
+  { href: "/sprints", nome: "Sprints", icone: "bandeira" },
   { href: "/notas", nome: "Notas", icone: "notas" },
   { href: "/pessoas", nome: "Pessoas", icone: "pessoas" },
   { href: "/projetos", nome: "Projetos", icone: "projetos" },

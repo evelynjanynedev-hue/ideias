@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { executar, um } from "@/lib/db";
-import { agoraISO, hoje } from "@/lib/format";
+import { adicionarDias, agoraISO, hoje } from "@/lib/format";
 
 const texto = (fd: FormData, chave: string) =>
   (fd.get(chave)?.toString() ?? "").trim();
@@ -387,8 +387,134 @@ export async function fecharRevisao() {
   atualizar();
 }
 
-/* ---------------- Exemplos ---------------- */
+/* ---------------- Scrum (sprints) ---------------- */
 
+const PONTOS_VALIDOS = new Set([0, 1, 2, 3, 5, 8, 13, 21]);
+
+export async function criarSprint(fd: FormData) {
+  const nome = texto(fd, "nome") || "Sprint";
+  const objetivo = opcional(fd, "objetivo");
+  const inicio = texto(fd, "inicio") || hoje();
+  const fim = texto(fd, "fim") || adicionarDias(7);
+
+  const ativa = await um<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM sprints WHERE status = 'ativa'",
+  );
+  const status = (ativa?.n ?? 0) > 0 ? "planejada" : "ativa";
+
+  await executar(
+    `INSERT INTO sprints (id, nome, objetivo, inicio, fim, status, criado_em, demo)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+    novoId(),
+    nome,
+    objetivo,
+    inicio,
+    fim,
+    status,
+    agoraISO(),
+  );
+
+  atualizar();
+}
+
+export async function ativarSprint(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  await executar("UPDATE sprints SET status = 'planejada' WHERE status = 'ativa'");
+  await executar("UPDATE sprints SET status = 'ativa' WHERE id = ?", id);
+  atualizar();
+}
+
+export async function adicionarAoSprint(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+
+  let sprintId = texto(fd, "sprint_id");
+  if (!sprintId) {
+    const ativa = await um<{ id: string }>(
+      "SELECT id FROM sprints WHERE status = 'ativa' LIMIT 1",
+    );
+    if (!ativa) return;
+    sprintId = ativa.id;
+  }
+
+  const pontos = Number(texto(fd, "pontos"));
+  if (PONTOS_VALIDOS.has(pontos)) {
+    await executar(
+      "UPDATE tarefas SET sprint_id = ?, pontos = ? WHERE id = ?",
+      sprintId,
+      pontos,
+      id,
+    );
+  } else {
+    await executar("UPDATE tarefas SET sprint_id = ? WHERE id = ?", sprintId, id);
+  }
+
+  atualizar();
+}
+
+export async function removerDoSprint(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  await executar("UPDATE tarefas SET sprint_id = NULL WHERE id = ?", id);
+  atualizar();
+}
+
+export async function definirPontos(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  const pontos = Number(texto(fd, "pontos"));
+  if (!PONTOS_VALIDOS.has(pontos)) return;
+  await executar("UPDATE tarefas SET pontos = ? WHERE id = ?", pontos, id);
+  atualizar();
+}
+
+export async function encerrarSprint(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  const retrospectiva = opcional(fd, "retrospectiva");
+
+  const sprint = await um<{ nome: string }>(
+    "SELECT nome FROM sprints WHERE id = ?",
+    id,
+  );
+  if (!sprint) return;
+
+  await executar(
+    "UPDATE sprints SET status = 'concluida', retrospectiva = ? WHERE id = ?",
+    retrospectiva,
+    id,
+  );
+
+  // O que não foi concluído volta para o Product Backlog.
+  await executar(
+    "UPDATE tarefas SET sprint_id = NULL WHERE sprint_id = ? AND status = 'aberta'",
+    id,
+  );
+
+  if (retrospectiva) {
+    await executar(
+      `INSERT INTO notas (id, titulo, corpo, tipo, area, tags, criado_em, demo)
+       VALUES (?, ?, ?, 'nota', 'pessoal', 'scrum, retrospectiva', ?, 0)`,
+      novoId(),
+      `Retrospectiva — ${sprint.nome}`,
+      retrospectiva,
+      agoraISO(),
+    );
+  }
+
+  atualizar();
+}
+
+export async function excluirSprint(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  await executar("UPDATE tarefas SET sprint_id = NULL WHERE sprint_id = ?", id);
+  await executar("DELETE FROM sprints WHERE id = ?", id);
+  atualizar();
+}
+
+/* ---------------- Exemplos ---------------- */
 export async function limparExemplos() {
   await executar("DELETE FROM tarefas WHERE demo = 1");
   await executar("DELETE FROM notas WHERE demo = 1");

@@ -21,6 +21,8 @@ export type Tarefa = {
   pessoa_id: string | null;
   janela: string | null;
   vence_em: string | null;
+  sprint_id: string | null;
+  pontos: number;
   criado_em: string;
   concluido_em: string | null;
   demo: number;
@@ -77,4 +79,23 @@ export type ProgressoProjeto = {
   projeto_id: string;
   total: number;
   feitas: number;
+};
+
+export type Sprint = {
+  id: string;
+  nome: string;
+  objetivo: string | null;
+  inicio: string;
+  fim: string;
+  status: "planejada" | "ativa" | "concluida";
+  retrospectiva: string | null;
+  criado_em: string;
+  demo: number;
+};
+
+export type ProgressoSprint = {
+  total: number;
+  feitas: number;
+  pontosTotal: number;
+  pontosFeitos: number;
 };

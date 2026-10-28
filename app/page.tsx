@@ -3,7 +3,7 @@ import { alternarRitual } from "./actions";
 import { Captura } from "@/components/captura";
 import { Ico, type IconeNome } from "@/components/icons";
 import { TarefaLinha } from "@/components/tarefa-linha";
-import { Cabecalho, Secao } from "@/components/ui";
+import { Cabecalho, Progresso, Secao } from "@/components/ui";
 import { NOME } from "@/lib/config";
 import { diaSemanaLongo, saudacao } from "@/lib/format";
 import {
@@ -119,6 +119,7 @@ export default async function HojePage() {
     tarefasJanela,
     projetos,
     todasPessoas,
+    sprint,
   ] = await Promise.all([
     q.rituaisHoje(),
     q.contarRituaisHoje(),
@@ -132,7 +133,10 @@ export default async function HojePage() {
     q.tarefasDaJanela(janela.key),
     q.listarProjetos(),
     q.listarPessoas(),
+    q.sprintAtiva(),
   ]);
+
+  const progressoSprint = sprint ? await q.progressoSprint(sprint.id) : null;
 
   const ritualFeito = rituais.has(janela.key);
   const { feitos: rituaisFeitos } = rituaisHoje;
@@ -351,6 +355,40 @@ export default async function HojePage() {
               </div>
             )}
           </Secao>
+
+          {sprint ? (
+            <Secao
+              titulo="Sprint atual"
+              acao={
+                <Link href="/sprints" className="link-quiet text-[11px]">
+                  abrir →
+                </Link>
+              }
+            >
+              <Link
+                href="/sprints"
+                className="card block p-3 transition hover:border-gold/30"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-cream">{sprint.nome}</p>
+                  <span className="chip">
+                    {progressoSprint?.pontosFeitos ?? 0}/{progressoSprint?.pontosTotal ?? 0} pt
+                  </span>
+                </div>
+                {sprint.objetivo ? (
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted">
+                    {sprint.objetivo}
+                  </p>
+                ) : null}
+                <div className="mt-2">
+                  <Progresso
+                    feitas={progressoSprint?.feitas ?? 0}
+                    total={progressoSprint?.total ?? 0}
+                  />
+                </div>
+              </Link>
+            </Secao>
+          ) : null}
 
           <Secao
             titulo={`Ritmo de hoje · ${rituaisFeitos}/12`}

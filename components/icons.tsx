@@ -48,6 +48,12 @@ const caminhos: Record<string, ReactNode> = {
       <path d="M4 10a8 8 0 0 1 14-4.5M20 14a8 8 0 0 1-14 4.5" />
     </>
   ),
+  bandeira: (
+    <>
+      <path d="M5 21V4" />
+      <path d="M5 5h13l-3 4 3 4H5" />
+    </>
+  ),
   check: <path d="m4 12 5 5L20 6" />,
   plus: <path d="M12 5v14M5 12h14" />,
   seta: <path d="M5 12h14M13 6l6 6-6 6" />,
