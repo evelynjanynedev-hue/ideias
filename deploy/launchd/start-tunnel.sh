@@ -2,8 +2,9 @@
 # Zyra — túnel HTTPS público (Cloudflare quick tunnel) + publicação do endereço
 # atual no link permanente https://evelynjanynedev-hue.github.io/zyra-app/
 #
-# Mantido vivo pelo launchd (com.zyra.tunnel). Se o túnel cair, o launchd
-# reinicia e o script atualiza o url.json no GitHub com a nova URL.
+# Mantido vivo pelo launchd (com.zyra.tunnel).
+# Usa HTTP/2 em vez de QUIC: conexões QUIC caem com mais frequência em rede
+# doméstica/NAT, e cada queda derrubava a aba aberta (o túnel muda de URL).
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export HOME="__USUARIO__"
@@ -37,7 +38,8 @@ for _ in $(seq 1 30); do
 done
 
 : > "$LOG"
-/opt/homebrew/bin/cloudflared tunnel --url http://localhost:3001 --no-autoupdate >> "$LOG" 2>&1 &
+/opt/homebrew/bin/cloudflared tunnel --url http://localhost:3001 \
+  --protocol http2 --no-autoupdate >> "$LOG" 2>&1 &
 PID=$!
 
 URL=""
@@ -58,18 +60,23 @@ printf '%s\n' "$FIXO" > "$RT/url-fixa.txt"
 echo "$(date '+%F %T') túnel: $URL"
 publicar_url "$URL"
 
-# Vigia: 3 falhas seguidas => reinicia o túnel (o launchd sobe de novo).
+# Vigia tolerante: só reinicia depois de 4 minutos seguidos sem resposta.
+# Um 530 isolado do Cloudflare não deve trocar a URL e matar a aba aberta.
 falhas=0
 while kill -0 "$PID" 2>/dev/null; do
   sleep 60
-  CODIGO=$(curl -s -m 15 -o /dev/null -w '%{http_code}' "$URL/api/health")
-  if [ "$CODIGO" = "200" ]; then
+  A=$(curl -s -m 15 -o /dev/null -w '%{http_code}' "$URL/api/health")
+  B=200
+  [ "$A" = "200" ] || { sleep 5; B=$(curl -s -m 15 -o /dev/null -w '%{http_code}' "$URL/api/health"); }
+
+  if [ "$A" = "200" ] || [ "$B" = "200" ]; then
+    if [ "$falhas" -gt 0 ]; then echo "$(date '+%F %T') voltou ao normal"; fi
     falhas=0
   else
     falhas=$((falhas + 1))
-    echo "$(date '+%F %T') health=$CODIGO ($falhas/3)"
-    if [ "$falhas" -ge 3 ]; then
-      echo "$(date '+%F %T') reiniciando túnel"
+    echo "$(date '+%F %T') health=$A/$B ($falhas/4)"
+    if [ "$falhas" -ge 4 ]; then
+      echo "$(date '+%F %T') túnel sem responder há ~4 min; reiniciando"
       kill -9 "$PID" 2>/dev/null
       break
     fi
