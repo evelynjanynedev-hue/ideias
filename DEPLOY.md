@@ -55,31 +55,21 @@ Abra o link: o navegador pede usuário (`zyra`) e a senha definida. O app começ
 
 ---
 
-## Opção 1b — Esta máquina + túnel (sem conta em PaaS)
+## Opção 1b — Esta máquina + link permanente (sem conta em PaaS)
 
-Quando não dá para criar conta em PaaS (verificação por e-mail, cartão etc.), dá para rodar o app **aqui** e expor por HTTPS com um túnel. O banco continua no Turso, então os dados são os mesmos de qualquer outro host.
+Quando não dá para criar conta em PaaS (verificação por e-mail, cartão etc.), o app roda **aqui** e o endereço fixo é uma página no GitHub Pages que redireciona para o túnel ativo. O banco continua no Turso.
 
-Duas alternativas de túnel:
-
-| Túnel | URL | Observação |
-|---|---|---|
-| **localtunnel** (`lt`) | **fixa**: `https://SEU-NOME.loca.lt` | grátis, sem conta; pede uma senha (IP público) no primeiro acesso de cada navegador |
-| **cloudflared** quick tunnel | muda a cada reinício | grátis, sem conta, sem tela intermediária |
-
-### URL fixa com localtunnel
-
-```bash
-npm i -g localtunnel
-
-ZYRA_DB_URL=libsql://zyra-....turso.io \
-ZYRA_DB_AUTH_TOKEN=... \
-ZYRA_PASSWORD=SUA-SENHA \
-./scripts/publicar.sh --build --fixo zyra-seunome
+```
+https://evelynjanynedev-hue.github.io/zyra-app/   (fixo, não muda)
+        └─► https://algo-algo.trycloudflare.com   (túnel, muda ao reconectar)
+                └─► localhost:3001 ──► Turso
 ```
 
-O subdomínio fica reservado enquanto o túnel estiver conectado. Se você parar e voltar, o script tenta até recuperar o mesmo nome.
+Como funciona:
 
-### Cloudflare Tunnel (URL temporária)
+1. `deploy/link-permanente/index.html` (repo público `zyra-app`) lê o `url.json` pela API do GitHub.
+2. Antes de redirecionar, chama `<túnel>/api/health` — se o túnel estiver morto, espera e tenta de novo.
+3. `deploy/launchd/start-tunnel.sh` sobe o `cloudflared` e publica a URL nova no `url.json`.
 
 ```bash
 brew install cloudflared
@@ -87,26 +77,13 @@ brew install cloudflared
 ZYRA_DB_URL=libsql://zyra-....turso.io \
 ZYRA_DB_AUTH_TOKEN=... \
 ZYRA_PASSWORD=SUA-SENHA \
-./scripts/publicar.sh --build
+./scripts/publicar.sh --build        # URL temporária, para testar
 ```
 
-O terminal mostra o link `https://algo-algo-algo.trycloudflare.com`. Enquanto o processo estiver de pé, o link funciona.
+Para deixar tudo sozinho (inclusive depois de reiniciar o Mac), instale os dois serviços de `deploy/launchd/` — instruções em [`deploy/launchd/README.md`](deploy/launchd/README.md).
 
-### Rodando sozinho (launchd)
-
-Os serviços em `deploy/launchd/` cuidam de manter app **e** túnel vivos, inclusive depois de reiniciar o Mac:
-
-```bash
-cp deploy/launchd/com.zyra.app.plist deploy/launchd/com.zyra.ltunnel.plist ~/Library/LaunchAgents/
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.zyra.app.plist
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.zyra.ltunnel.plist
-cat "$HOME/Library/Application Support/zyra/url-fixa.txt"   # link fixo
-```
-
-Detalhes e limitações: [`deploy/launchd/README.md`](deploy/launchd/README.md).
-
-Prós: grátis, sem conta, dados persistentes no Turso, sobe em segundos.
-Contras: o Mac precisa estar ligado e com internet; localtunnel é gratuito e sem SLA; o túnel do Cloudflare troca de URL ao reiniciar. Para link fixo sem depender da máquina, use a Opção 1 (Vercel), 2 (Docker em VPS) ou Railway/Render/Fly.
+Prós: grátis, sem conta em PaaS, endereço fixo, dados persistentes no Turso.
+Contras: o Mac precisa estar ligado e com internet; o túnel rápido do Cloudflare não tem SLA. Para independência total da máquina, use a Opção 1 (Vercel), 2 (Docker em VPS) ou Railway/Render/Fly.
 
 ---
 
