@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { capturar } from "@/app/actions";
 import { BotaoEnviar } from "./botao-enviar";
 import { Ico } from "./icons";
@@ -13,14 +13,27 @@ export function Captura({
   placeholder?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   return (
     <form
       ref={formRef}
       action={async (fd) => {
-        await capturar(fd);
-        formRef.current?.reset();
-        formRef.current?.querySelector("textarea")?.focus();
+        const texto = String(fd.get("texto") ?? "").trim();
+        if (!texto) {
+          setErro("Escreva algo antes de capturar.");
+          formRef.current?.querySelector("textarea")?.focus();
+          return;
+        }
+
+        setErro(null);
+        try {
+          await capturar(fd);
+          formRef.current?.reset();
+          formRef.current?.querySelector("textarea")?.focus();
+        } catch {
+          setErro("Não consegui salvar agora. Confira a conexão e tente de novo.");
+        }
       }}
       className="card p-3 md:p-4"
     >
@@ -29,6 +42,7 @@ export function Captura({
         required
         rows={compacta ? 2 : 3}
         placeholder={placeholder}
+        onChange={() => erro && setErro(null)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
             e.preventDefault();
@@ -50,6 +64,11 @@ export function Captura({
           Capturar
         </BotaoEnviar>
       </div>
+      {erro ? (
+        <p role="alert" className="mt-2 text-[11px] text-rose">
+          {erro}
+        </p>
+      ) : null}
     </form>
   );
 }
