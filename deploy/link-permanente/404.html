@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Zyra</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100dvh; display: grid; place-items: center;
+    background: #f6f1e7; color: #2c2721;
+    font: 16px/1.6 ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+    padding: 24px;
+  }
+  main {
+    width: 100%; max-width: 420px; text-align: center;
+    background: #fffdf8; border: 1px solid #e7ddc9; border-radius: 18px;
+    padding: 36px 28px; box-shadow: 0 18px 50px -30px rgba(60, 45, 20, .35);
+  }
+  .mark {
+    width: 44px; height: 44px; margin: 0 auto 18px; border-radius: 12px;
+    display: grid; place-items: center; background: #b08d57; color: #fffdf8;
+    font: 600 20px/1 ui-serif, Georgia, serif;
+  }
+  h1 { margin: 0 0 6px; font: 600 24px/1.25 ui-serif, Georgia, serif; letter-spacing: -.01em; }
+  p { margin: 0; color: #7a7266; font-size: 14px; }
+  .actions { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  a.btn, button.btn {
+    appearance: none; cursor: pointer; text-decoration: none;
+    border-radius: 10px; padding: 10px 16px; font: 500 14px/1 inherit;
+    border: 1px solid #b08d57; background: #b08d57; color: #fffdf8;
+  }
+  button.ghost { background: transparent; color: #6b6357; border-color: #ddd2bd; }
+  a.btn:hover, button.btn:hover { filter: brightness(.96); }
+  footer { margin-top: 26px; font-size: 11px; color: #a89e8d; letter-spacing: .08em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<main>
+  <div class="mark">Z</div>
+  <h1>Abrindo o Zyra</h1>
+  <p id="status">Conectando à instância atual…</p>
+  <div class="actions">
+    <a id="manual" class="btn" href="#" hidden>Abrir manualmente</a>
+    <button id="retry" class="btn ghost" type="button">Tentar de novo</button>
+  </div>
+  <footer>sistema pessoal</footer>
+</main>
+
+<script>
+  const REPO = "evelynjanynedev-hue/zyra-app";
+  const FONTES = [
+    `https://api.github.com/repos/${REPO}/contents/url.json?t=${Date.now()}`,
+    `https://raw.githubusercontent.com/${REPO}/main/url.json?t=${Date.now()}`,
+  ];
+
+  // 404 do GitHub Pages: mantém o caminho (/projetos, /sprints…) no destino.
+  const resto = window.location.pathname.replace(/^\/zyra-app/, "");
+
+  const status = document.getElementById("status");
+  const manual = document.getElementById("manual");
+  const retry = document.getElementById("retry");
+
+  async function descobrirUrl() {
+    for (const fonte of FONTES) {
+      try {
+        const resposta = await fetch(fonte, {
+          cache: "no-store",
+          headers: { Accept: fonte.includes("api.github.com") ? "application/vnd.github.raw" : "application/json" },
+        });
+        if (!resposta.ok) continue;
+        const dados = await resposta.json();
+        const url = String(dados.url || "");
+        if (/^https:\/\/[^\s]+$/.test(url)) return url;
+      } catch (_) {
+        /* tenta a próxima fonte */
+      }
+    }
+    return null;
+  }
+
+  async function noAr(url) {
+    try {
+      const resposta = await fetch(url + "/api/health", { cache: "no-store" });
+      return resposta.ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function abrir() {
+    retry.disabled = true;
+    for (let tentativa = 1; tentativa <= 10; tentativa++) {
+      status.textContent = tentativa === 1
+        ? "Conectando à instância atual…"
+        : `Ainda conectando… (${tentativa}/10)`;
+
+      const url = await descobrirUrl();
+      if (url) {
+        manual.href = url;
+        manual.hidden = false;
+        if (await noAr(url)) {
+          status.textContent = "Redirecionando…";
+          window.location.replace(url.replace(/\/$/, "") + resto + window.location.search);
+          retry.disabled = false;
+          return;
+        }
+      }
+
+      await new Promise((r) => setTimeout(r, 4000));
+    }
+
+    status.textContent = "O servidor está reconectando. Tente de novo em instantes.";
+    retry.disabled = false;
+  }
+
+  retry.addEventListener("click", abrir);
+  abrir();
+</script>
+</body>
+</html>
