@@ -1,12 +1,14 @@
 import Link from "next/link";
 import {
   alternarTarefa,
+  atualizarResultado,
   criarProjeto,
   definirProximaAcao,
   excluirProjeto,
   mudarStatusProjeto,
 } from "@/app/actions";
 import { BotaoEnviar } from "@/components/botao-enviar";
+import { DescricaoExpansivel } from "@/components/descricao-expansivel";
 import { Ico } from "@/components/icons";
 import {
   AREAS_DISPONIVEIS,
@@ -148,10 +150,26 @@ export default async function ProjetosPage() {
                         {p.nome}
                       </h3>
                       {p.resultado ? (
-                        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted">
-                          {p.resultado}
-                        </p>
+                        <DescricaoExpansivel texto={p.resultado} />
                       ) : null}
+                      <details className="mt-1">
+                        <summary className="cursor-pointer list-none text-[10px] text-muted/70 transition hover:text-gold">
+                          {p.resultado ? "editar descrição" : "adicionar descrição"}
+                        </summary>
+                        <form action={atualizarResultado} className="mt-1.5 space-y-1.5">
+                          <input type="hidden" name="id" value={p.id} />
+                          <textarea
+                            name="resultado"
+                            rows={5}
+                            defaultValue={p.resultado ?? ""}
+                            placeholder="Objetivo, plano, referências… o que você precisa lembrar quando abrir este projeto."
+                            className="field resize-y text-xs"
+                          />
+                          <button type="submit" className="btn-ghost h-7 px-2 text-[11px]">
+                            salvar descrição
+                          </button>
+                        </form>
+                      </details>
                     </div>
                     <form action={excluirProjeto}>
                       <input type="hidden" name="id" value={p.id} />

@@ -319,6 +319,17 @@ export async function criarProjeto(fd: FormData) {
   atualizar();
 }
 
+export async function atualizarResultado(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  await executar(
+    "UPDATE projetos SET resultado = ? WHERE id = ?",
+    opcional(fd, "resultado"),
+    id,
+  );
+  atualizar();
+}
+
 export async function definirProximaAcao(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
