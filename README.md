@@ -13,6 +13,7 @@ Ideias, insights, pessoas, projetos, tarefas e informações — organizados no 
 <br />
 
 [![Abrir o app](https://img.shields.io/badge/%E2%96%B6%20abrir%20o%20app-online-b08d57?style=for-the-badge)](https://evelynjanynedev-hue.github.io/zyra-app/)
+[![Repositório](https://img.shields.io/badge/github-evelynjanynedev--hue%2Fideias-181717?style=for-the-badge&logo=github)](https://github.com/evelynjanynedev-hue/ideias)
 
 <br />
 
