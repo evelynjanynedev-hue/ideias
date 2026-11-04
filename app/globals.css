@@ -2,34 +2,34 @@
 
 @theme {
   /* Base: papel, tinta e ouro */
-  --color-paper: #f7f2e8;
+  --color-paper: #f7f1e4;
   --color-panel: #fffdf9;
-  --color-panel2: #f0e9db;
-  --color-line: #e6ddcc;
+  --color-panel2: #f0e8d7;
+  --color-line: #e5dbc8;
   --color-ink: #29241e;
   --color-cream: #3a342b;
   --color-muted: #6d6557;
 
-  --color-gold: #9a6234;
+  --color-gold: #9c5f2c;
   --color-goldsoft: #7c4c26;
 
   /* Cores semânticas — cada parte do sistema tem a sua */
-  --color-urgent: #b0463f;
-  --color-focus: #9a6a16;
-  --color-done: #3f7a56;
-  --color-inbox: #b0552e;
-  --color-people: #2c736d;
-  --color-projects: #3a6398;
-  --color-notes: #6f5c9e;
-  --color-sprint: #5457a3;
-  --color-review: #9c4c61;
-  --color-window: #9a6234;
-  --color-info: #3f7288;
+  --color-urgent: #b23b34;
+  --color-focus: #a86f0e;
+  --color-done: #2f7d50;
+  --color-inbox: #bd5327;
+  --color-people: #167a72;
+  --color-projects: #2f63a0;
+  --color-notes: #6b52a8;
+  --color-sprint: #4a4dab;
+  --color-review: #a83d58;
+  --color-window: #a85f22;
+  --color-info: #2f7089;
 
   /* Aliases históricos */
-  --color-sage: #4f7d5e;
-  --color-rose: #b0505f;
-  --color-lilac: #7865a8;
+  --color-sage: #3f7d58;
+  --color-rose: #b03f55;
+  --color-lilac: #7059a8;
 
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
@@ -48,9 +48,10 @@
 
   body {
     background:
-      radial-gradient(1100px 640px at 88% -14%, rgba(217, 164, 65, 0.24), transparent 62%),
-      radial-gradient(900px 560px at -6% 104%, rgba(47, 122, 116, 0.16), transparent 60%),
-      radial-gradient(760px 520px at 52% 42%, rgba(120, 101, 168, 0.08), transparent 72%),
+      radial-gradient(1100px 640px at 88% -14%, rgba(221, 158, 42, 0.34), transparent 62%),
+      radial-gradient(900px 560px at -6% 104%, rgba(22, 122, 114, 0.24), transparent 60%),
+      radial-gradient(760px 520px at 52% 42%, rgba(107, 82, 168, 0.12), transparent 72%),
+      radial-gradient(600px 420px at 100% 78%, rgba(168, 61, 88, 0.1), transparent 70%),
       var(--color-paper);
     background-attachment: fixed;
     min-height: 100vh;
@@ -134,6 +135,7 @@
 
   .card {
     @apply rounded-card border border-line/90 bg-panel/90;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 253, 249, 0.2));
     box-shadow: var(--shadow-card);
   }
 

@@ -35,7 +35,7 @@ export function Captura({
           setErro("Não consegui salvar agora. Confira a conexão e tente de novo.");
         }
       }}
-      className="card relative overflow-hidden border-inbox/20 bg-gradient-to-br from-inbox/[0.05] to-panel/80 p-3 md:p-4"
+      className="card relative overflow-hidden border-inbox/30 bg-gradient-to-br from-inbox/[0.1] to-panel/80 p-3 md:p-4"
     >
       <textarea
         name="texto"

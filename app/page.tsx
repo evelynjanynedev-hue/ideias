@@ -141,7 +141,7 @@ export default async function HojePage() {
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         {/* Janela atual */}
-        <section className="anim-rise relative overflow-hidden rounded-card border border-window/25 bg-gradient-to-br from-window/12 via-panel/80 to-panel/60 p-4 shadow-[var(--shadow-card)]">
+        <section className="anim-rise relative overflow-hidden rounded-card border border-window/35 bg-gradient-to-br from-window/20 via-panel/75 to-panel/55 p-4 shadow-[var(--shadow-card)]">
           <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-window/10 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -268,7 +268,7 @@ export default async function HojePage() {
             tom="inbox"
             alerta={inbox > 0}
           />
-          <div className="col-span-2 flex items-center gap-2.5 rounded-card border border-line/80 bg-panel/70 px-3 py-2.5">
+          <div className="col-span-2 flex items-center gap-2.5 rounded-card border border-window/25 bg-gradient-to-br from-window/[0.07] to-panel/70 px-3 py-2.5">
             <Anel valor={rituaisFeitos * 8.333} tom="feito" tamanho={40} espessura={4}>
               <span className="text-[9px] font-semibold text-done tabular-nums">
                 {rituaisFeitos}
@@ -299,7 +299,7 @@ export default async function HojePage() {
               </Link>
             }
           >
-            <div className="card overflow-hidden p-1">
+            <div className="card overflow-hidden border-focus/25 bg-focus/[0.04] p-1">
               {foco.length === 0 ? (
                 <div className="flex flex-wrap items-center gap-3 px-3 py-4">
                   <span className="icon-tile h-9 w-9 bg-focus/12 text-focus">
@@ -366,7 +366,7 @@ export default async function HojePage() {
             }
           >
             {feitasHoje.length === 0 ? (
-              <div className="card flex items-center gap-3 px-3 py-3">
+              <div className="card flex items-center gap-3 border-done/25 bg-done/[0.05] px-3 py-3">
                 <span className="icon-tile h-8 w-8 bg-done/10 text-done/70">
                   <Ico nome="check-circulo" className="h-4 w-4" />
                 </span>

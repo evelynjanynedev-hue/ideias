@@ -292,8 +292,8 @@ export default async function ProjetosPage({
                       action={definirProximaAcao}
                       className={`mt-2 rounded-xl border p-2.5 ${
                         semPasso
-                          ? "border-urgent/25 bg-urgent/[0.04]"
-                          : "border-projects/20 bg-projects/[0.04]"
+                          ? "border-urgent/35 bg-urgent/[0.08]"
+                          : "border-projects/30 bg-projects/[0.08]"
                       }`}
                     >
                       <input type="hidden" name="id" value={p.id} />

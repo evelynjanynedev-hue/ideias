@@ -234,7 +234,7 @@ function CartaoSprint({
         : 0;
 
   return (
-    <section className="card relative overflow-hidden border-sprint/25 bg-gradient-to-br from-sprint/12 via-panel/80 to-panel/60 p-4">
+    <section className="card relative overflow-hidden border-sprint/35 bg-gradient-to-br from-sprint/20 via-panel/75 to-panel/55 p-4">
       <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-sprint/10 blur-2xl" />
       <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -397,7 +397,7 @@ export default async function SprintsPage() {
           <Secao titulo="Começar um sprint" tom="sprint">
             <form
               action={criarSprint}
-              className="card space-y-3 border-sprint/20 bg-gradient-to-br from-sprint/[0.05] to-panel/80 p-4"
+              className="card space-y-3 border-sprint/30 bg-gradient-to-br from-sprint/[0.09] to-panel/80 p-4"
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>

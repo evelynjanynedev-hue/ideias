@@ -110,7 +110,7 @@ export default async function RevisaoPage() {
       />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <section className="card relative overflow-hidden border-review/25 bg-gradient-to-br from-review/12 via-panel/80 to-panel/60 p-4">
+        <section className="card relative overflow-hidden border-review/35 bg-gradient-to-br from-review/20 via-panel/75 to-panel/55 p-4">
           <div className="pointer-events-none absolute -top-16 -right-12 h-40 w-40 rounded-full bg-review/10 blur-2xl" />
           <div className="relative flex items-start gap-3">
             <Anel valor={pct} tom="revisao" tamanho={64} espessura={6}>

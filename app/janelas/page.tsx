@@ -115,7 +115,7 @@ export default async function JanelasPage() {
               key={j.key}
               className={`relative grid grid-cols-1 gap-3 overflow-hidden rounded-xl border p-3 transition md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-start ${
                 ativa
-                  ? "border-window/40 bg-gradient-to-r from-window/10 to-panel/40 shadow-[0_10px_30px_-24px_rgba(154,98,52,.8)]"
+                  ? "border-window/50 bg-gradient-to-r from-window/18 to-panel/40 shadow-[0_10px_30px_-24px_rgba(154,98,52,.8)]"
                   : "border-line/50 bg-panel/30 hover:border-line"
               }`}
             >

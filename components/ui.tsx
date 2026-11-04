@@ -22,118 +22,194 @@ export type Tom =
   | "verde"
   | "rosa";
 
-const TONS: Record<Tom, { badge: string; tile: string; dot: string; bar: string; bg: string }> = {
+type EstiloTom = {
+  badge: string;
+  tile: string;
+  dot: string;
+  bar: string;
+  bg: string;
+  accent: string;
+  linha: string;
+  texto: string;
+  suave: string;
+};
+
+const TONS: Record<Tom, EstiloTom> = {
   neutro: {
-    badge: "border-line bg-panel2/70 text-muted",
+    badge: "border-line bg-panel2/80 text-muted",
     tile: "bg-panel2 text-muted",
     dot: "bg-muted/50",
     bar: "bg-muted/40",
-    bg: "from-panel2/70 via-panel/80 to-panel/60",
+    bg: "from-panel2/80 via-panel/80 to-panel/60",
+    accent: "border-l-line",
+    linha: "bg-line",
+    texto: "text-muted",
+    suave: "bg-panel2/50",
   },
   ouro: {
-    badge: "border-gold/25 bg-gold/10 text-gold",
-    tile: "bg-gold/10 text-gold",
+    badge: "border-gold/35 bg-gold/15 text-gold",
+    tile: "bg-gold/18 text-gold",
     dot: "bg-gold",
     bar: "bg-gold",
-    bg: "from-gold/12 via-panel/80 to-panel/60",
+    bg: "from-gold/28 via-gold/[0.09] to-panel/45",
+    accent: "border-l-gold",
+    linha: "bg-gold/55",
+    texto: "text-gold",
+    suave: "bg-gold/[0.07]",
   },
   foco: {
-    badge: "border-focus/30 bg-focus/10 text-focus",
-    tile: "bg-focus/12 text-focus",
+    badge: "border-focus/40 bg-focus/15 text-focus",
+    tile: "bg-focus/18 text-focus",
     dot: "bg-focus",
     bar: "bg-focus",
-    bg: "from-focus/14 via-panel/80 to-panel/60",
+    bg: "from-focus/28 via-focus/[0.09] to-panel/45",
+    accent: "border-l-focus",
+    linha: "bg-focus/60",
+    texto: "text-focus",
+    suave: "bg-focus/[0.08]",
   },
   urgente: {
-    badge: "border-urgent/30 bg-urgent/10 text-urgent",
-    tile: "bg-urgent/10 text-urgent",
+    badge: "border-urgent/40 bg-urgent/15 text-urgent",
+    tile: "bg-urgent/16 text-urgent",
     dot: "bg-urgent",
     bar: "bg-urgent",
-    bg: "from-urgent/12 via-panel/80 to-panel/60",
+    bg: "from-urgent/28 via-urgent/[0.09] to-panel/45",
+    accent: "border-l-urgent",
+    linha: "bg-urgent/60",
+    texto: "text-urgent",
+    suave: "bg-urgent/[0.07]",
   },
   feito: {
-    badge: "border-done/30 bg-done/10 text-done",
-    tile: "bg-done/12 text-done",
+    badge: "border-done/40 bg-done/15 text-done",
+    tile: "bg-done/16 text-done",
     dot: "bg-done",
     bar: "bg-done",
-    bg: "from-done/12 via-panel/80 to-panel/60",
+    bg: "from-done/28 via-done/[0.09] to-panel/45",
+    accent: "border-l-done",
+    linha: "bg-done/60",
+    texto: "text-done",
+    suave: "bg-done/[0.07]",
   },
   inbox: {
-    badge: "border-inbox/30 bg-inbox/10 text-inbox",
-    tile: "bg-inbox/12 text-inbox",
+    badge: "border-inbox/40 bg-inbox/15 text-inbox",
+    tile: "bg-inbox/16 text-inbox",
     dot: "bg-inbox",
     bar: "bg-inbox",
-    bg: "from-inbox/14 via-panel/80 to-panel/60",
+    bg: "from-inbox/28 via-inbox/[0.09] to-panel/45",
+    accent: "border-l-inbox",
+    linha: "bg-inbox/60",
+    texto: "text-inbox",
+    suave: "bg-inbox/[0.08]",
   },
   pessoas: {
-    badge: "border-people/30 bg-people/10 text-people",
-    tile: "bg-people/12 text-people",
+    badge: "border-people/40 bg-people/15 text-people",
+    tile: "bg-people/16 text-people",
     dot: "bg-people",
     bar: "bg-people",
-    bg: "from-people/12 via-panel/80 to-panel/60",
+    bg: "from-people/28 via-people/[0.09] to-panel/45",
+    accent: "border-l-people",
+    linha: "bg-people/60",
+    texto: "text-people",
+    suave: "bg-people/[0.07]",
   },
   projetos: {
-    badge: "border-projects/30 bg-projects/10 text-projects",
-    tile: "bg-projects/12 text-projects",
+    badge: "border-projects/40 bg-projects/15 text-projects",
+    tile: "bg-projects/16 text-projects",
     dot: "bg-projects",
     bar: "bg-projects",
-    bg: "from-projects/12 via-panel/80 to-panel/60",
+    bg: "from-projects/28 via-projects/[0.09] to-panel/45",
+    accent: "border-l-projects",
+    linha: "bg-projects/60",
+    texto: "text-projects",
+    suave: "bg-projects/[0.07]",
   },
   notas: {
-    badge: "border-notes/30 bg-notes/10 text-notes",
-    tile: "bg-notes/12 text-notes",
+    badge: "border-notes/40 bg-notes/15 text-notes",
+    tile: "bg-notes/16 text-notes",
     dot: "bg-notes",
     bar: "bg-notes",
-    bg: "from-notes/12 via-panel/80 to-panel/60",
+    bg: "from-notes/28 via-notes/[0.09] to-panel/45",
+    accent: "border-l-notes",
+    linha: "bg-notes/60",
+    texto: "text-notes",
+    suave: "bg-notes/[0.07]",
   },
   sprint: {
-    badge: "border-sprint/30 bg-sprint/10 text-sprint",
-    tile: "bg-sprint/12 text-sprint",
+    badge: "border-sprint/40 bg-sprint/15 text-sprint",
+    tile: "bg-sprint/16 text-sprint",
     dot: "bg-sprint",
     bar: "bg-sprint",
-    bg: "from-sprint/12 via-panel/80 to-panel/60",
+    bg: "from-sprint/28 via-sprint/[0.09] to-panel/45",
+    accent: "border-l-sprint",
+    linha: "bg-sprint/60",
+    texto: "text-sprint",
+    suave: "bg-sprint/[0.07]",
   },
   revisao: {
-    badge: "border-review/30 bg-review/10 text-review",
-    tile: "bg-review/12 text-review",
+    badge: "border-review/40 bg-review/15 text-review",
+    tile: "bg-review/16 text-review",
     dot: "bg-review",
     bar: "bg-review",
-    bg: "from-review/12 via-panel/80 to-panel/60",
+    bg: "from-review/28 via-review/[0.09] to-panel/45",
+    accent: "border-l-review",
+    linha: "bg-review/60",
+    texto: "text-review",
+    suave: "bg-review/[0.07]",
   },
   janela: {
-    badge: "border-window/30 bg-window/10 text-window",
-    tile: "bg-window/12 text-window",
+    badge: "border-window/40 bg-window/15 text-window",
+    tile: "bg-window/16 text-window",
     dot: "bg-window",
     bar: "bg-window",
-    bg: "from-window/12 via-panel/80 to-panel/60",
+    bg: "from-window/28 via-window/[0.09] to-panel/45",
+    accent: "border-l-window",
+    linha: "bg-window/60",
+    texto: "text-window",
+    suave: "bg-window/[0.07]",
   },
   info: {
-    badge: "border-info/30 bg-info/10 text-info",
-    tile: "bg-info/12 text-info",
+    badge: "border-info/40 bg-info/15 text-info",
+    tile: "bg-info/16 text-info",
     dot: "bg-info",
     bar: "bg-info",
-    bg: "from-info/12 via-panel/80 to-panel/60",
+    bg: "from-info/28 via-info/[0.09] to-panel/45",
+    accent: "border-l-info",
+    linha: "bg-info/60",
+    texto: "text-info",
+    suave: "bg-info/[0.07]",
   },
   lilas: {
-    badge: "border-lilac/30 bg-lilac/10 text-lilac",
-    tile: "bg-lilac/12 text-lilac",
+    badge: "border-lilac/40 bg-lilac/15 text-lilac",
+    tile: "bg-lilac/16 text-lilac",
     dot: "bg-lilac",
     bar: "bg-lilac",
-    bg: "from-lilac/12 via-panel/80 to-panel/60",
+    bg: "from-lilac/28 via-lilac/[0.09] to-panel/45",
+    accent: "border-l-lilac",
+    linha: "bg-lilac/60",
+    texto: "text-lilac",
+    suave: "bg-lilac/[0.07]",
   },
   verde: {
-    badge: "border-sage/30 bg-sage/10 text-sage",
-    tile: "bg-sage/12 text-sage",
+    badge: "border-sage/40 bg-sage/15 text-sage",
+    tile: "bg-sage/16 text-sage",
     dot: "bg-sage",
     bar: "bg-sage",
-    bg: "from-sage/12 via-panel/80 to-panel/60",
+    bg: "from-sage/28 via-sage/[0.09] to-panel/45",
+    accent: "border-l-sage",
+    linha: "bg-sage/60",
+    texto: "text-sage",
+    suave: "bg-sage/[0.07]",
   },
   rosa: {
-    badge: "border-rose/30 bg-rose/10 text-rose",
-    tile: "bg-rose/12 text-rose",
+    badge: "border-rose/40 bg-rose/15 text-rose",
+    tile: "bg-rose/16 text-rose",
     dot: "bg-rose",
     bar: "bg-rose",
-    bg: "from-rose/12 via-panel/80 to-panel/60",
+    bg: "from-rose/28 via-rose/[0.09] to-panel/45",
+    accent: "border-l-rose",
+    linha: "bg-rose/60",
+    texto: "text-rose",
+    suave: "bg-rose/[0.07]",
   },
 };
 
@@ -178,12 +254,13 @@ export function Cabecalho({
     <header
       className={`anim-rise relative mb-5 overflow-hidden rounded-card border border-line/80 bg-gradient-to-br ${t.bg} px-4 py-4 md:px-5`}
     >
-      <div className="pointer-events-none absolute -top-16 -right-12 h-40 w-40 rounded-full bg-white/45 blur-3xl" />
+      <div className="pointer-events-none absolute -top-16 -right-12 h-40 w-40 rounded-full bg-white/40 blur-3xl" />
+      <span className={`pointer-events-none absolute inset-x-0 bottom-0 h-[2.5px] ${t.linha}`} />
       <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           {icone ? (
-            <span className={`icon-tile mt-0.5 h-9 w-9 ${t.tile}`}>
-              <Ico nome={icone} className="h-4 w-4" />
+            <span className={`icon-tile mt-0.5 h-10 w-10 shadow-sm ${t.tile}`}>
+              <Ico nome={icone} className="h-[18px] w-[18px]" />
             </span>
           ) : null}
           <div className="min-w-0">
@@ -227,11 +304,13 @@ export function Secao({
   return (
     <section className={className}>
       <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-          <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+        <h2
+          className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] ${t.texto}`}
+        >
+          <span className={`h-2 w-2 rounded-full ring-2 ring-white/70 ${t.dot}`} />
           {titulo}
           {typeof contagem === "number" ? (
-            <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${t.badge}`}>
+            <span className={`rounded-full border px-1.5 py-0.5 text-[10px] tabular-nums ${t.badge}`}>
               {contagem}
             </span>
           ) : null}
@@ -425,20 +504,20 @@ export function Kpi({
   return (
     <Link
       href={href}
-      className={`card card-hover flex items-center gap-2.5 px-3 py-2.5 ${
-        alerta ? "ring-1 ring-inset ring-gold/15" : ""
+      className={`card card-hover relative flex items-center gap-2.5 overflow-hidden border-l-4 px-3 py-2.5 ${t.accent} bg-gradient-to-br ${t.bg} ${
+        alerta ? "shadow-[0_10px_26px_-22px_rgba(63,52,38,0.65)]" : ""
       }`}
     >
-      <span className={`icon-tile h-8 w-8 ${t.tile}`}>
-        <Ico nome={icone} className="h-3.5 w-3.5" />
+      <span className={`icon-tile h-9 w-9 shadow-sm ${t.tile}`}>
+        <Ico nome={icone} className="h-4 w-4" />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[10px] uppercase tracking-[0.09em] text-muted">
+        <span className={`block truncate text-[10px] font-medium uppercase tracking-[0.09em] ${t.texto}`}>
           {rotulo}
         </span>
         <span
           className={`block text-lg leading-tight font-semibold tabular-nums ${
-            alerta ? t.badge.split(" ").pop() : "text-cream"
+            alerta ? t.texto : "text-cream"
           }`}
         >
           {valor}

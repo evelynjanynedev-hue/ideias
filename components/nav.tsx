@@ -72,27 +72,39 @@ const ITENS: ItemNav[] = [
 ];
 
 const ATIVO: Record<TomNav, string> = {
-  foco: "bg-focus/12 text-focus",
-  inbox: "bg-inbox/12 text-inbox",
-  ouro: "bg-gold/12 text-gold",
-  sprint: "bg-sprint/12 text-sprint",
-  notas: "bg-notes/12 text-notes",
-  pessoas: "bg-people/12 text-people",
-  projetos: "bg-projects/12 text-projects",
-  janela: "bg-window/12 text-window",
-  revisao: "bg-review/12 text-review",
+  foco: "bg-focus/16 text-focus",
+  inbox: "bg-inbox/16 text-inbox",
+  ouro: "bg-gold/16 text-gold",
+  sprint: "bg-sprint/16 text-sprint",
+  notas: "bg-notes/16 text-notes",
+  pessoas: "bg-people/16 text-people",
+  projetos: "bg-projects/16 text-projects",
+  janela: "bg-window/16 text-window",
+  revisao: "bg-review/16 text-review",
 };
 
 const TILE: Record<TomNav, string> = {
-  foco: "bg-focus/12 text-focus",
-  inbox: "bg-inbox/12 text-inbox",
-  ouro: "bg-gold/12 text-gold",
-  sprint: "bg-sprint/12 text-sprint",
-  notas: "bg-notes/12 text-notes",
-  pessoas: "bg-people/12 text-people",
-  projetos: "bg-projects/12 text-projects",
-  janela: "bg-window/12 text-window",
-  revisao: "bg-review/12 text-review",
+  foco: "bg-focus/16 text-focus",
+  inbox: "bg-inbox/16 text-inbox",
+  ouro: "bg-gold/16 text-gold",
+  sprint: "bg-sprint/16 text-sprint",
+  notas: "bg-notes/16 text-notes",
+  pessoas: "bg-people/16 text-people",
+  projetos: "bg-projects/16 text-projects",
+  janela: "bg-window/16 text-window",
+  revisao: "bg-review/16 text-review",
+};
+
+const TILE_FORTE: Record<TomNav, string> = {
+  foco: "bg-focus text-white shadow-sm",
+  inbox: "bg-inbox text-white shadow-sm",
+  ouro: "bg-gold text-white shadow-sm",
+  sprint: "bg-sprint text-white shadow-sm",
+  notas: "bg-notes text-white shadow-sm",
+  pessoas: "bg-people text-white shadow-sm",
+  projetos: "bg-projects text-white shadow-sm",
+  janela: "bg-window text-white shadow-sm",
+  revisao: "bg-review text-white shadow-sm",
 };
 
 const BARRA: Record<TomNav, string> = {
@@ -201,7 +213,7 @@ function LinkNav({
       ) : null}
       <span
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition ${
-          on ? TILE[item.tom] : "bg-panel2/60 text-muted group-hover:text-cream"
+          on ? TILE_FORTE[item.tom] : "bg-panel2/60 text-muted group-hover:text-cream"
         }`}
       >
         <Ico nome={item.icone} className="h-3.5 w-3.5" />
@@ -272,7 +284,7 @@ export function NavLateral({
         {janela ? (
           <Link
             href="/janelas"
-            className="group block overflow-hidden rounded-xl border border-window/25 bg-gradient-to-br from-window/10 to-panel/60 p-3 transition hover:border-window/40"
+            className="group block overflow-hidden rounded-xl border border-window/35 bg-gradient-to-br from-window/18 to-panel/60 p-3 transition hover:border-window/40"
           >
             <span className="flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.14em] text-window">
               <span className="relative flex h-1.5 w-1.5">
@@ -357,7 +369,9 @@ export function NavInferior({ resumo }: { resumo: ResumoGlobal }) {
                         : "border-line/70 bg-white/40 text-cream"
                     }`}
                   >
-                    <span className={`icon-tile h-7 w-7 ${TILE[item.tom]}`}>
+                    <span
+                      className={`icon-tile h-7 w-7 ${on ? TILE_FORTE[item.tom] : TILE[item.tom]}`}
+                    >
                       <Ico nome={item.icone} className="h-3.5 w-3.5" />
                     </span>
                     <span className="min-w-0 flex-1 text-xs font-medium">{item.nome}</span>
