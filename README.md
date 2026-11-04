@@ -4,11 +4,15 @@
 
 # Zyra
 
-**Sistema pessoal local-first para capturar tudo o que chega, dar destino e colocar em prática.**
+**Sistema pessoal para capturar tudo o que chega, dar destino e colocar em prática.**
 
 Ideias, insights, pessoas, projetos, tarefas e informações — organizados no ritmo das janelas do dia.
 
 > Primeiro você. Depois o que você serve.
+
+<br />
+
+[![Abrir o app](https://img.shields.io/badge/%E2%96%B6%20abrir%20o%20app-online-b08d57?style=for-the-badge)](https://evelynjanynedev-hue.github.io/zyra-app/)
 
 <br />
 
@@ -18,13 +22,32 @@ Ideias, insights, pessoas, projetos, tarefas e informações — organizados no 
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![SQLite](https://img.shields.io/badge/libSQL-Turso-4FF8D2?style=flat-square&logo=sqlite&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-instal%C3%A1vel-5F7D67?style=flat-square&logo=pwa&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-ready-000000?style=flat-square&logo=vercel&logoColor=white)
 
 </div>
 
 ---
 
-## O que é
+## 🔗 Acessar o app
+
+**Link fixo:** <https://evelynjanynedev-hue.github.io/zyra-app/>
+
+Esse endereço é permanente: ele descobre qual instância do app está no ar naquele momento e
+redireciona para ela. Pode salvar nos favoritos, mandar para o celular e adicionar à tela de
+início.
+
+> O app é **pessoal e protegido por senha** (HTTP Basic Auth). O navegador vai pedir usuário e
+> senha antes de abrir qualquer tela — as credenciais são privadas, definidas em `ZYRA_PASSWORD`.
+
+**Status da instância:** `GET /api/health` responde algo como
+`{"ok":true,"banco":"remoto (libSQL)","tarefas":1}`.
+
+> Como o app roda em uma máquina própria com túnel, o link só abre enquanto essa instância estiver
+> ligada. Se a página disser “reconectando”, aguarde alguns segundos e tente de novo. Para rodar na
+> sua máquina, veja [Como rodar localmente](#-como-rodar-localmente).
+
+---
+
+## 🎯 Para que serve
 
 Zyra não é mais um lugar para guardar informação. É um sistema para **fechar o ciclo**:
 
@@ -32,14 +55,16 @@ Zyra não é mais um lugar para guardar informação. É um sistema para **fecha
 capturar → processar → priorizar → agendar na janela → executar → revisar
 ```
 
-A maioria dos apps de produtividade para na captura: você anota, arquiva e nunca mais olha. Aqui cada item que entra na caixa de entrada **precisa de um destino** — e cada destino tem um próximo passo.
+A maioria dos apps de produtividade para na captura: você anota, arquiva e nunca mais olha. Aqui
+cada item que entra na caixa de entrada **precisa de um destino** — e cada destino tem um próximo
+passo.
 
-- **Nada fica solto na cabeça.** Tudo entra na Caixa de entrada e é processado em tarefa, nota, pessoa ou projeto.
+- **Nada fica solto na cabeça.** Tudo entra na Caixa de entrada e é processado em tarefa, nota,
+  pessoa ou projeto.
 - **Pouca coisa importa por dia.** No máximo 3 prioridades, com uma estrela de foco.
-- **O dia tem ritmo.** As 12 janelas do relógio dos órgãos viram faixas de 2h com uma intenção clara.
+- **O dia tem ritmo.** As 12 janelas do relógio dos órgãos viram faixas de 2h com uma intenção
+  clara.
 - **O ciclo fecha.** Uma revisão semanal mostra o que ficou para trás — sem culpa, com decisão.
-
-### O fluxo, em um diagrama
 
 ```mermaid
 flowchart LR
@@ -57,7 +82,69 @@ flowchart LR
 
 ---
 
-## Funcionalidades
+## 🚀 Como usar (primeiros 10 minutos)
+
+### 1. Entre e olhe a tela **Hoje**
+
+A tela inicial mostra a janela atual (com a intenção daquela faixa de 2h), quanto tempo falta para
+ela acabar, as **3 prioridades** do dia e os alertas do que pede atenção. É o seu painel de
+partida — não precisa configurar nada.
+
+### 2. Capture tudo na **Caixa de entrada**
+
+Tem um campo de captura rápida no topo. Escreva a ideia, o lembrete, o nome de alguém, o link —
+**sem julgar e sem organizar na hora**. Captura é despejo, não decisão.
+
+### 3. Processe cada item (a parte que fecha o ciclo)
+
+Na **Caixa de entrada**, cada item espera um destino:
+
+| Ação | Vira | Quando usar |
+|---|---|---|
+| **Tarefa** | algo para fazer, com área, projeto, prioridade e janela | “preciso fazer isso” |
+| **Nota** | insight, referência ou registro | “preciso lembrar disso” |
+| **Pessoa** | contato com contexto e próximo passo | “preciso falar com alguém” |
+| **Projeto** | resultado esperado com próxima ação | “isso é maior que uma tarefa” |
+| **Arquivar / excluir** | sai do caminho | “não preciso mais disso” |
+
+Regra de ouro: **se não tem próximo passo, não é tarefa.** É nota, é referência, ou não é nada.
+
+### 4. Escolha as **3 prioridades** do dia
+
+Em **Tarefas**, marque no máximo três como prioridade e **uma** como foco (a estrela). O resto
+continua na lista — mas não compete com o que você escolheu para hoje.
+
+### 5. Execute na **janela** certa
+
+Em **Janelas do dia** você vê as 12 faixas, o órgão e o modo de cada uma, e marca o ritual do dia.
+As tarefas aparecem agrupadas por atraso, hoje e semana — conclua ou adie em 1 clique.
+
+### 6. Feche a semana na **Revisão**
+
+A revisão mostra o que ficou: itens na inbox, tarefas atrasadas, projetos parados, pessoas sem
+contato, rituais não feitos. Você decide o destino de cada coisa e registra como foi a semana.
+**Nada é apagado sem decisão sua.**
+
+### Atalhos de uso diário
+
+| Quero… | Vá em |
+|---|---|
+| despejar uma ideia agora | **Hoje** → captura rápida |
+| ver o que tenho para fazer | **Tarefas** (filtre por área ou projeto) |
+| planejar a semana | **Sprints** → criar sprint → puxar do backlog |
+| guardar um aprendizado | **Notas** (com tags, área e vínculos) |
+| não deixar uma relação esfriar | **Pessoas** → registrar contato e próximo passo |
+| acompanhar um resultado maior | **Projetos** → próxima ação e progresso |
+| fechar o dia/semana | **Revisão** |
+
+### Instalar no celular (PWA)
+
+Abra o link no navegador do celular → **Compartilhar → Adicionar à Tela de Início**. O app abre em
+tela cheia, como um app nativo.
+
+---
+
+## ✨ Funcionalidades
 
 | Tela | O que faz |
 |---|---|
@@ -73,14 +160,15 @@ flowchart LR
 
 Outros detalhes:
 
-- **Dados locais** em um único arquivo SQLite (`data/zyra.db`), sem conta, sem nuvem, sem telemetria.
-- **PWA instalável** no celular quando aberto pelo IP do Mac na mesma rede Wi-Fi.
+- **Dados locais** em um único arquivo SQLite (`data/zyra.db`), sem conta, sem nuvem, sem
+  telemetria.
+- **PWA instalável** no celular.
 - **Backup** em um comando (`npm run backup`).
 - **Dados de exemplo** na primeira execução, removíveis em um botão na tela de Revisão.
 
 ---
 
-## Stack (e por que ela)
+## 🧱 Stack (e por que ela)
 
 | Camada | Escolha | Motivo |
 |---|---|---|
@@ -88,21 +176,24 @@ Outros detalhes:
 | Linguagem | **TypeScript** | Segurança para crescer sem quebrar o que já funciona. |
 | Estilo | **Tailwind CSS 4** | Design consistente sem arquivos CSS espalhados. |
 | Dados | **libSQL / SQLite** (`@libsql/client`) | Zero instalação e zero conta no dev (arquivo `data/zyra.db`); em produção, o mesmo SQL roda no **Turso** com link fixo. |
-| Offline/local | **PWA** (manifest + ícone) | Dá para instalar na tela inicial do celular quando acessado pelo IP do Mac. |
-| Futuro | Postgres/Supabase ou Turso/libSQL | Só quando existir necessidade real de sincronizar entre aparelhos. |
+| Offline/local | **PWA** (manifest + ícone) | Dá para instalar na tela inicial do celular. |
 
 **Por que não começar com Supabase, Firebase ou um backend na nuvem?**
-Porque o problema hoje é **organizar a própria vida**, não escalar para milhares de usuários. SQLite local é mais rápido, privado e barato. A migração para nuvem é possível depois, sem refazer a interface.
+Porque o problema hoje é **organizar a própria vida**, não escalar para milhares de usuários.
+SQLite local é mais rápido, privado e barato. A migração para nuvem é possível depois, sem refazer
+a interface.
 
 **Por que não React Native/Expo?**
-O custo de manter dois apps (web + mobile) não se paga nesta fase. Como PWA, o mesmo app abre no celular. Se um dia o uso mobile passar de 80%, aí vale um app nativo — e a API já estará pronta.
+O custo de manter dois apps (web + mobile) não se paga nesta fase. Como PWA, o mesmo app abre no
+celular. Se um dia o uso mobile passar de 80%, aí vale um app nativo — e a API já estará pronta.
 
 **Por que não Notion/Obsidian?**
-Eles guardam informação; este app foi desenhado para **fechar o ciclo**: captura → processa → escolhe a janela → executa → revisa. A estrutura força a decisão, não só o arquivamento.
+Eles guardam informação; este app foi desenhado para **fechar o ciclo**: captura → processa →
+escolhe a janela → executa → revisa. A estrutura força a decisão, não só o arquivamento.
 
 ---
 
-## Como rodar
+## 💻 Como rodar localmente
 
 Requisitos: **Node.js 22+** (testado no 26).
 
@@ -126,6 +217,11 @@ Verificação de tipos:
 npm run typecheck
 ```
 
+Na primeira execução o banco é criado em `data/zyra.db` com dados de exemplo. Para começar do zero,
+defina `ZYRA_SEED=0`.
+
+> Localmente o app **não tem login**. Em produção, ative a senha com `ZYRA_PASSWORD` e use HTTPS.
+
 ### Celular na mesma rede Wi-Fi
 
 ```bash
@@ -134,11 +230,9 @@ ipconfig getifaddr en0        # pega o IP do Mac
 # no Safari: compartilhar → Adicionar à Tela de Início
 ```
 
-> Localmente o app **não tem login**. Em produção, ative a senha com `ZYRA_PASSWORD` e use HTTPS.
-
 ---
 
-## Deploy em produção
+## ☁️ Deploy em produção
 
 Dois caminhos, ambos com **link fixo** e **banco persistente**:
 
@@ -173,17 +267,18 @@ Principais variáveis:
 | `ZYRA_USER` | `zyra` | Usuário do Basic Auth. |
 | `PORT` | `3001` | Porta do servidor. |
 
-O guia completo (Turso, Vercel, Railway, Render, Fly.io, VPS, backup e checklist de segurança) está em **[DEPLOY.md](DEPLOY.md)**.
+O guia completo (Turso, Vercel, Railway, Render, Fly.io, VPS, backup e checklist de segurança) está
+em **[DEPLOY.md](DEPLOY.md)**.
 
-Healthcheck: `GET /api/health` → `{ "ok": true, "banco": "remoto (libSQL)", "tarefas": 0 }`.
-
-> Sem `ZYRA_PASSWORD`, o app fica aberto para quem tiver o link. Com ela, o navegador pede usuário e senha antes de qualquer página.
+> Sem `ZYRA_PASSWORD`, o app fica aberto para quem tiver o link. Com ela, o navegador pede usuário e
+> senha antes de qualquer página.
 
 ---
 
-## Scrum, do backlog ao sprint
+## 🔁 Scrum, do backlog ao sprint
 
-O Scrum aqui é **ritmo**, não burocracia: um sprint por semana, um objetivo por sprint, e o resto espera no backlog.
+O Scrum aqui é **ritmo**, não burocracia: um sprint por semana, um objetivo por sprint, e o resto
+espera no backlog.
 
 | Artefato / cerimônia | Onde vive no app |
 |---|---|
@@ -198,15 +293,18 @@ Regras simples:
 
 - **Uma sprint ativa por vez.** As outras ficam planejadas.
 - **Objetivo em uma frase** — se não cabe, o sprint está grande demais.
-- **Story points são estimativa relativa**, não prazo. `0` = trivial, `13` = grande, `21` = quebre em dois.
-- **O que não foi concluído volta para o backlog** ao encerrar — sem carregar peso para o próximo ciclo.
+- **Story points são estimativa relativa**, não prazo. `0` = trivial, `13` = grande, `21` = quebre
+  em dois.
+- **O que não foi concluído volta para o backlog** ao encerrar — sem carregar peso para o próximo
+  ciclo.
 - A **retrospectiva** é salva como nota e fica no histórico do sprint.
 
 ---
 
-## As janelas do dia
+## 🕰️ As janelas do dia
 
-O app completa as 12 faixas do relógio dos órgãos (a lista original ia até 19h; 19–21 entrou como **Pericárdio** e 21–23 como **Triplo Aquecedor**).
+O app completa as 12 faixas do relógio dos órgãos (a lista original ia até 19h; 19–21 entrou como
+**Pericárdio** e 21–23 como **Triplo Aquecedor**).
 
 | Janela | Órgão | Modo |
 |---|---|---|
@@ -223,11 +321,12 @@ O app completa as 12 faixas do relógio dos órgãos (a lista original ia até 1
 | 19–21 | Pericárdio | Proteger |
 | 21–23 | Triplo Aquecedor | Recolher |
 
-É um **ritmo simbólico**, não diagnóstico médico. O app trata as janelas como convite à pausa e ao foco — seu corpo tem a última palavra.
+É um **ritmo simbólico**, não diagnóstico médico. O app trata as janelas como convite à pausa e ao
+foco — seu corpo tem a última palavra.
 
 ---
 
-## Estrutura do projeto
+## 🗂️ Estrutura do projeto
 
 ```
 app/
@@ -254,6 +353,7 @@ lib/
 components/         # UI, navegação, captura, processamento
 public/             # ícone e manifest da PWA
 proxy.ts            # HTTP Basic Auth opcional (produção)
+deploy/             # launchd + página de link permanente
 Dockerfile          # imagem de produção (Node + standalone)
 docker-compose.yml  # app + volume persistente
 DEPLOY.md           # guia de deploy
@@ -264,12 +364,13 @@ Para trocar o nome exibido, edite `lib/config.ts`.
 
 ---
 
-## Dados, privacidade e backup
+## 🔒 Dados, privacidade e backup
 
 - No dev, o banco fica em `data/zyra.db` e **não é versionado** (`.gitignore`).
 - Em produção, o banco fica no Turso (libSQL remoto) — mesmas tabelas, mesmo SQL.
 - Não há rastreamento nem chamada para serviços externos além do próprio banco.
-- Em produção, ative a senha com `ZYRA_PASSWORD` — o `proxy.ts` protege todas as páginas com HTTP Basic Auth.
+- Em produção, ative a senha com `ZYRA_PASSWORD` — o `proxy.ts` protege todas as páginas com HTTP
+  Basic Auth.
 - Para trocar o diretório dos dados, defina `ZYRA_DATA_DIR`.
 
 O banco é um arquivo só. Com o app parado, copie `data/` inteiro. Ou use:
@@ -282,18 +383,20 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 
 ---
 
-## Roadmap (em ordem de valor)
+## 🗺️ Roadmap (em ordem de valor)
 
 1. **Usar por 7 dias** e anotar onde travou. O melhor roadmap vem do uso real.
 2. Editar tarefas/notas e busca global (hoje só cria, conclui e exclui).
 3. PWA offline de verdade (service worker) e atalho de captura.
-4. Processamento assistido por IA: transformar um despejo de ideias em sugestões de tarefas/notas — sempre com revisão humana.
-5. Login multiusuário (hoje há uma senha única) e sincronização entre aparelhos — já garantida pelo Turso.
+4. Processamento assistido por IA: transformar um despejo de ideias em sugestões de tarefas/notas —
+   sempre com revisão humana.
+5. Login multiusuário (hoje há uma senha única) e sincronização entre aparelhos — já garantida pelo
+   Turso.
 6. Exportar tudo em Markdown para nunca ficar preso ao app.
 
 ---
 
-## Estado atual
+## ✅ Estado atual
 
 - [x] Captura → processamento → tarefa/nota/pessoa/projeto
 - [x] Janelas do dia com ritual e tarefas por faixa
