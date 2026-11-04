@@ -213,6 +213,17 @@ export function proximasJanelas(n: number, d: Date = new Date()): Janela[] {
   return out;
 }
 
+export function progressoJanela(d: Date = new Date()): number {
+  const j = janelaAtual(d);
+  const inicio = new Date(d);
+  inicio.setMinutes(0, 0, 0);
+  inicio.setHours(j.inicio);
+  if (inicio > d) inicio.setDate(inicio.getDate() - 1);
+  const duracao = (((j.fim - j.inicio + 24) % 24) || 24) * 3600000;
+  const passado = d.getTime() - inicio.getTime();
+  return Math.max(0, Math.min(100, Math.round((passado / duracao) * 100)));
+}
+
 export function restanteJanela(d: Date = new Date()): string {
   const j = janelaAtual(d);
   const fim = new Date(d);

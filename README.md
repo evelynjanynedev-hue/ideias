@@ -169,6 +169,43 @@ Outros detalhes:
 
 ---
 
+## 🎨 Experiência visual: bater o olho e se localizar
+
+O app inteiro usa uma **cor por domínio da vida** — não é decoração, é linguagem. Em qualquer tela
+você reconhece de onde vem o item e o que ele pede:
+
+| Cor | Domínio | Onde aparece |
+|---|---|---|
+| 🟡 **Âmbar** | foco / prioridade | estrela de foco, prioridades do dia, janela de foco |
+| 🔴 **Vermelho** | urgente / atrasado | tarefas vencidas, prazos estourados, pendências |
+| 🟢 **Verde** | feito / concluído | tarefas concluídas, rituais, projetos ativos |
+| 🟠 **Coral** | caixa de entrada | captura, itens sem destino, processamento |
+| 🟢 **Verde-água** | pessoas | contatos, relações esfriando, retomadas |
+| 🔵 **Azul** | projetos | próxima ação, progresso, status |
+| 🟣 **Violeta** | notas / insights | notas, referências, tags |
+| 🔵 **Índigo** | sprints | backlog, board, pontos, retrospectiva |
+| 🌹 **Rosa** | revisão | ciclo semanal, pendências, fechamento |
+| 🟤 **Cobre** | janelas do dia | janela atual, rituais, ritmo |
+
+### Um painel global em todas as páginas
+
+- **Barra de status no topo** (desktop e mobile): janela atual, inbox, atrasadas, foco, tarefas de
+  hoje e o contador de **feitas hoje**. Se algo está pegando fogo, você vê antes de rolar a página.
+- **Menu lateral colorido e agrupado** em *Fluxo* (Hoje, Inbox, Tarefas), *Contexto* (Sprints,
+  Projetos, Pessoas, Notas) e *Ritmo* (Janelas, Revisão), cada item com **contador ao vivo** e
+  ponto vermelho quando há urgência.
+- **No celular**, barra inferior com as 4 telas principais e um menu **Mais** com todo o resto —
+  incluindo os mesmos contadores.
+- **O que já foi feito não some**: a tela **Hoje** tem a seção *Concluídas hoje* e a **Revisão**
+  mostra *O que já foi feito esta semana*. Progresso visível sustenta o hábito.
+- **Anéis de progresso** (SVG) para janela atual, sprint, projetos e ciclo de revisão — leitura
+  instantânea de “quanto falta”.
+- **Hierarquia por peso visual**: barra lateral colorida nas tarefas (urgente > foco > prioridade),
+  cartões com borda de domínio, cabeçalhos com gradiente suave e microanimações de entrada
+  (respeitando `prefers-reduced-motion`).
+
+---
+
 ## 🧱 Stack (e por que ela)
 
 | Camada | Escolha | Motivo |

@@ -326,6 +326,142 @@ export async function progressoSprint(sprintId: string): Promise<ProgressoSprint
   };
 }
 
+/* ---------- Visão global ---------- */
+
+export type ResumoGlobal = {
+  inbox: number;
+  atrasadas: number;
+  hoje: number;
+  foco: number;
+  abertas: number;
+  feitasHoje: number;
+  rituais: number;
+  pessoas: number;
+  semAcao: number;
+  backlog: number;
+  revisouHoje: number;
+  feitasSemana: number;
+};
+
+export async function resumoGlobal(): Promise<ResumoGlobal> {
+  const h = isoDate();
+  const semana = adicionarDias(-7);
+  const limiteContato = new Date(Date.now() - 21 * 86400000).toISOString();
+
+  const linha = await um<{
+    inbox: number;
+    atrasadas: number;
+    hoje: number;
+    foco: number;
+    abertas: number;
+    feitas_hoje: number;
+    rituais: number;
+    pessoas: number;
+    sem_acao: number;
+    backlog: number;
+    revisou_hoje: number;
+    feitas_semana: number;
+  }>(
+    `SELECT
+       (SELECT COUNT(*) FROM itens WHERE status = 'inbox') AS inbox,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta' AND vence_em IS NOT NULL AND vence_em < ?) AS atrasadas,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta' AND vence_em = ?) AS hoje,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta' AND foco = 1) AS foco,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta') AS abertas,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'feita' AND substr(concluido_em, 1, 10) = ?) AS feitas_hoje,
+       (SELECT COUNT(*) FROM rituais WHERE data = ? AND feito = 1) AS rituais,
+       (SELECT COUNT(*) FROM pessoas
+         WHERE (proximo_em IS NOT NULL AND proximo_em <= ?)
+            OR ultimo_contato IS NULL
+            OR ultimo_contato < ?) AS pessoas,
+       (SELECT COUNT(*) FROM projetos
+         WHERE status = 'ativo' AND (proxima_acao IS NULL OR TRIM(proxima_acao) = '')) AS sem_acao,
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta' AND sprint_id IS NULL) AS backlog,
+       (SELECT COUNT(*) FROM revisoes WHERE data = ?) AS revisou_hoje,
+       (SELECT COUNT(*) FROM tarefas
+         WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?) AS feitas_semana`,
+    h,
+    h,
+    h,
+    h,
+    h,
+    limiteContato,
+    h,
+    semana,
+  );
+
+  return {
+    inbox: linha?.inbox ?? 0,
+    atrasadas: linha?.atrasadas ?? 0,
+    hoje: linha?.hoje ?? 0,
+    foco: linha?.foco ?? 0,
+    abertas: linha?.abertas ?? 0,
+    feitasHoje: linha?.feitas_hoje ?? 0,
+    rituais: linha?.rituais ?? 0,
+    pessoas: linha?.pessoas ?? 0,
+    semAcao: linha?.sem_acao ?? 0,
+    backlog: linha?.backlog ?? 0,
+    revisouHoje: linha?.revisou_hoje ?? 0,
+    feitasSemana: linha?.feitas_semana ?? 0,
+  };
+}
+
+export async function tarefasFeitasHoje(): Promise<Tarefa[]> {
+  return todos<Tarefa>(
+    `SELECT * FROM tarefas
+     WHERE status = 'feita' AND substr(concluido_em, 1, 10) = ?
+     ORDER BY concluido_em DESC`,
+    isoDate(),
+  );
+}
+
+export async function tarefasConcluidasSemana(limite = 20): Promise<Tarefa[]> {
+  return todos<Tarefa>(
+    `SELECT * FROM tarefas
+     WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?
+     ORDER BY concluido_em DESC LIMIT ?`,
+    adicionarDias(-7),
+    limite,
+  );
+}
+
+export async function resumoSemana(): Promise<{
+  feitas: number;
+  notas: number;
+  rituais: number;
+  contatos: number;
+  revisoes: number;
+}> {
+  const semana = adicionarDias(-7);
+  const linha = await um<{
+    feitas: number;
+    notas: number;
+    rituais: number;
+    contatos: number;
+    revisoes: number;
+  }>(
+    `SELECT
+       (SELECT COUNT(*) FROM tarefas WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?) AS feitas,
+       (SELECT COUNT(*) FROM notas WHERE criado_em >= ?) AS notas,
+       (SELECT COUNT(*) FROM rituais WHERE data >= ? AND feito = 1) AS rituais,
+       (SELECT COUNT(*) FROM pessoas WHERE ultimo_contato >= ?) AS contatos,
+       (SELECT COUNT(*) FROM revisoes WHERE data >= ?) AS revisoes`,
+    semana,
+    semana,
+    semana,
+    semana,
+    semana,
+  );
+
+  return {
+    feitas: linha?.feitas ?? 0,
+    notas: linha?.notas ?? 0,
+    rituais: linha?.rituais ?? 0,
+    contatos: linha?.contatos ?? 0,
+    revisoes: linha?.revisoes ?? 0,
+  };
+}
+
 /* ---------- Utilidades ---------- */
 
 export async function tarefasPorProjeto(projetoId: string): Promise<Tarefa[]> {

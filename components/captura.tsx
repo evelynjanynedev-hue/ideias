@@ -35,7 +35,7 @@ export function Captura({
           setErro("Não consegui salvar agora. Confira a conexão e tente de novo.");
         }
       }}
-      className="card p-3 md:p-4"
+      className="card relative overflow-hidden border-inbox/20 bg-gradient-to-br from-inbox/[0.05] to-panel/80 p-3 md:p-4"
     >
       <textarea
         name="texto"
@@ -52,14 +52,14 @@ export function Captura({
         className="w-full resize-none bg-transparent px-1 py-1 text-[15px] leading-relaxed text-cream placeholder:text-muted/50 outline-none"
       />
       <div className="mt-2 flex items-center gap-2 border-t border-line/60 pt-2.5">
-        <Ico nome="inbox" className="ml-1 h-4 w-4 shrink-0 text-muted/60" />
+        <Ico nome="inbox" className="ml-1 h-4 w-4 shrink-0 text-inbox/60" />
         <input
           name="fonte"
           placeholder="de onde veio? (opcional)"
           className="min-w-0 flex-1 bg-transparent px-1 text-xs text-muted placeholder:text-muted/40 outline-none"
         />
         <span className="hidden text-[10px] text-muted/40 sm:block">⌘ + ↵</span>
-        <BotaoEnviar className="btn-gold px-4 py-1.5 text-xs">
+        <BotaoEnviar className="btn bg-inbox px-4 py-1.5 text-xs text-white shadow-sm transition hover:brightness-95">
           <Ico nome="plus" className="h-3.5 w-3.5" />
           Capturar
         </BotaoEnviar>

@@ -79,6 +79,73 @@ const caminhos: Record<string, ReactNode> = {
       <path d="M8 3v3l4 4 4-4V3M8 21v-3l4-4 4 4v3" />
     </>
   ),
+  alvo: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    </>
+  ),
+  trofeu: (
+    <>
+      <path d="M8 4h8v5a4 4 0 0 1-8 0z" />
+      <path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3" />
+      <path d="M12 13v4M9 21h6M10 17h4" />
+    </>
+  ),
+  chama: (
+    <path d="M12 3c1.5 3 4.5 4.5 4.5 8a4.5 4.5 0 0 1-9 0c0-1.5.5-2.5 1.5-3.5.5 1.5 1.5 2 2.5 2 0-2 .5-4.5.5-6.5z" />
+  ),
+  calendario: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15" rx="2" />
+      <path d="M8 3v4M16 3v4M3.5 10h17" />
+    </>
+  ),
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  mais: (
+    <>
+      <circle cx="5" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="19" cy="12" r="1" fill="currentColor" />
+    </>
+  ),
+  tendencia: (
+    <>
+      <path d="m3 17 6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </>
+  ),
+  raio: <path d="M13 2 4 14h6l-1 8 9-12h-6z" />,
+  camadas: (
+    <>
+      <path d="m12 3 9 5-9 5-9-5z" />
+      <path d="m3 13 9 5 9-5M3 17l9 5 9-5" />
+    </>
+  ),
+  etiqueta: (
+    <>
+      <path d="M3 11V5a2 2 0 0 1 2-2h6l10 10-8 8z" />
+      <circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  email: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </>
+  ),
+  telefone: (
+    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
+  ),
+  pausa: <path d="M9 5v14M15 5v14" />,
+  play: <path d="M8 5v14l11-7z" />,
+  "check-circulo": (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 2.5 2.5L16 9" />
+    </>
+  ),
 };
 
 export type IconeNome = keyof typeof caminhos;

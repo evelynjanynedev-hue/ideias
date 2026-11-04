@@ -15,11 +15,51 @@ import { Ico, type IconeNome } from "./icons";
 
 type Tipo = "tarefa" | "nota" | "pessoa" | "projeto";
 
-const opcoes: { tipo: Tipo; nome: string; icone: IconeNome }[] = [
-  { tipo: "tarefa", nome: "Tarefa", icone: "tarefas" },
-  { tipo: "nota", nome: "Nota", icone: "notas" },
-  { tipo: "pessoa", nome: "Pessoa", icone: "pessoas" },
-  { tipo: "projeto", nome: "Projeto", icone: "projetos" },
+const opcoes: {
+  tipo: Tipo;
+  nome: string;
+  desc: string;
+  icone: IconeNome;
+  cor: string;
+  botao: string;
+  texto: string;
+}[] = [
+  {
+    tipo: "tarefa",
+    nome: "Tarefa",
+    desc: "ação concreta",
+    icone: "tarefas",
+    cor: "border-gold/25 bg-gold/[0.06] text-gold hover:border-gold/45 hover:bg-gold/10",
+    botao: "bg-gold hover:bg-goldsoft",
+    texto: "text-gold",
+  },
+  {
+    tipo: "nota",
+    nome: "Nota",
+    desc: "guardar ideia",
+    icone: "notas",
+    cor: "border-notes/25 bg-notes/[0.06] text-notes hover:border-notes/45 hover:bg-notes/10",
+    botao: "bg-notes hover:brightness-95",
+    texto: "text-notes",
+  },
+  {
+    tipo: "pessoa",
+    nome: "Pessoa",
+    desc: "relação",
+    icone: "pessoas",
+    cor: "border-people/25 bg-people/[0.06] text-people hover:border-people/45 hover:bg-people/10",
+    botao: "bg-people hover:brightness-95",
+    texto: "text-people",
+  },
+  {
+    tipo: "projeto",
+    nome: "Projeto",
+    desc: "resultado maior",
+    icone: "projetos",
+    cor: "border-projects/25 bg-projects/[0.06] text-projects hover:border-projects/45 hover:bg-projects/10",
+    botao: "bg-projects hover:brightness-95",
+    texto: "text-projects",
+  },
 ];
 
 function truncar(texto: string, n = 90) {
@@ -38,22 +78,29 @@ export function ProcessarItem({
 }) {
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const tituloSugerido = truncar(item.texto);
+  const selecionada = tipo ? opcoes.find((o) => o.tipo === tipo)! : null;
 
   return (
-    <article className="card p-3">
+    <article className="card relative overflow-hidden border-l-[3px] border-l-inbox/70 p-3">
       <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-inbox/10 text-inbox">
+          <Ico nome="inbox" className="h-3.5 w-3.5" />
+        </span>
         <div className="min-w-0 flex-1">
           <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-cream/90">
             {item.texto}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted">
             {item.fonte ? (
-              <span className="chip">
+              <span className="chip border-inbox/20 bg-inbox/[0.05] text-inbox/80">
                 <Ico nome="seta" className="h-3 w-3" />
                 {item.fonte}
               </span>
             ) : null}
-            <span>{tempoRelativo(item.criado_em)}</span>
+            <span className="flex items-center gap-1">
+              <Ico nome="janelas" className="h-3 w-3 opacity-60" />
+              {tempoRelativo(item.criado_em)}
+            </span>
           </div>
         </div>
         <form action={arquivarItem}>
@@ -81,18 +128,17 @@ export function ProcessarItem({
           <input type="hidden" name="id" value={item.id} />
           <input type="hidden" name="tipo" value={tipo} />
 
-          <div className="mb-4 flex items-center justify-between">
-            <span className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-gold/80">
-              <Ico
-                nome={opcoes.find((o) => o.tipo === tipo)!.icone}
-                className="h-3.5 w-3.5"
-              />
-              nova {tipo}
+          <div
+            className={`mb-4 flex items-center justify-between rounded-lg border px-2.5 py-2 ${selecionada?.cor ?? ""}`}
+          >
+            <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em]">
+              <Ico nome={selecionada?.icone ?? "faisca"} className="h-3.5 w-3.5" />
+              transformar em {tipo}
             </span>
             <button
               type="button"
               onClick={() => setTipo(null)}
-              className="text-[11px] text-muted hover:text-cream"
+              className="text-[11px] opacity-70 hover:opacity-100"
             >
               cancelar
             </button>
@@ -320,25 +366,35 @@ export function ProcessarItem({
               <Ico nome="lixo" className="h-3.5 w-3.5" />
               descartar
             </button>
-            <BotaoEnviar>
+            <BotaoEnviar
+              className={`btn text-[#fffdf8] ${selecionada?.botao ?? "bg-gold hover:bg-goldsoft"}`}
+            >
               Criar {tipo}
               <Ico nome="seta" className="h-3.5 w-3.5" />
             </BotaoEnviar>
           </div>
         </form>
       ) : (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {opcoes.map((o) => (
-            <button
-              key={o.tipo}
-              type="button"
-              onClick={() => setTipo(o.tipo)}
-              className="btn-ghost px-2.5 py-1 text-[11px]"
-            >
-              <Ico nome={o.icone} className="h-3.5 w-3.5" />
-              {o.nome}
-            </button>
-          ))}
+        <div className="mt-3 border-t border-line/60 pt-2.5">
+          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted/70">
+            dar um destino
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+            {opcoes.map((o) => (
+              <button
+                key={o.tipo}
+                type="button"
+                onClick={() => setTipo(o.tipo)}
+                className={`flex flex-col items-start gap-1 rounded-lg border px-2.5 py-2 text-left transition ${o.cor}`}
+              >
+                <span className="flex items-center gap-1.5 text-[11px] font-medium">
+                  <Ico nome={o.icone} className="h-3.5 w-3.5" />
+                  {o.nome}
+                </span>
+                <span className="text-[10px] text-muted">{o.desc}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </article>

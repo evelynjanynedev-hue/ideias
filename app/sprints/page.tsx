@@ -10,7 +10,7 @@ import {
   removerDoSprint,
 } from "@/app/actions";
 import { Ico } from "@/components/icons";
-import { AreaBadge, Badge, Cabecalho, Secao, Vazio } from "@/components/ui";
+import { Anel, AreaBadge, Badge, Cabecalho, Secao, Vazio } from "@/components/ui";
 import { adicionarDias, dataCurta, hoje } from "@/lib/format";
 import * as q from "@/lib/queries";
 import type { Sprint, Tarefa } from "@/lib/types";
@@ -35,8 +35,11 @@ function diasTexto(fim: string): { texto: string; tom: "neutro" | "ouro" | "rosa
 
 function Barra({ pct }: { pct: number }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-panel2">
-      <div className="h-full rounded-full bg-gold transition" style={{ width: `${pct}%` }} />
+    <div className="h-2 w-full overflow-hidden rounded-full bg-panel2">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-sprint/70 to-sprint transition-all duration-500"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
@@ -51,20 +54,20 @@ function LinhaSprint({ tarefa }: { tarefa: Tarefa }) {
         <button
           type="submit"
           aria-label={feita ? "Reabrir tarefa" : "Concluir tarefa"}
-          className={`flex h-4 w-4 items-center justify-center rounded-full border transition ${
+          className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border transition ${
             feita
-              ? "border-sage/60 bg-sage/20 text-sage"
-              : "border-muted/40 text-transparent hover:border-gold hover:text-gold/70"
+              ? "border-done/60 bg-done text-white"
+              : "border-muted/40 text-transparent hover:border-done hover:bg-done/10 hover:text-done"
           }`}
         >
-          <Ico nome="check" className="h-2.5 w-2.5" strokeWidth={2.4} />
+          <Ico nome="check" className="h-2.5 w-2.5" strokeWidth={2.8} />
         </button>
       </form>
 
       <div className="min-w-0 flex-1">
         <p
           className={`text-[13px] leading-relaxed ${
-            feita ? "text-muted/60 line-through" : "text-cream/90"
+            feita ? "text-muted/60 line-through decoration-done/40" : "text-cream/90"
           }`}
         >
           {tarefa.titulo}
@@ -72,9 +75,17 @@ function LinhaSprint({ tarefa }: { tarefa: Tarefa }) {
         {!feita ? (
           <div className="mt-1 flex flex-wrap items-center gap-1">
             <AreaBadge area={tarefa.area} />
-            <span className="chip">{(tarefa.pontos ?? 0) || "–"} pt</span>
+            <span className="chip border-sprint/25 bg-sprint/10 text-sprint">
+              <Ico nome="camadas" className="h-2.5 w-2.5" />
+              {(tarefa.pontos ?? 0) || "–"} pt
+            </span>
           </div>
-        ) : null}
+        ) : (
+          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-done/70">
+            <Ico nome="check-circulo" className="h-2.5 w-2.5" />
+            concluída · {(tarefa.pontos ?? 0) || "–"} pt
+          </p>
+        )}
       </div>
 
       {!feita ? (
@@ -116,8 +127,20 @@ function LinhaSprint({ tarefa }: { tarefa: Tarefa }) {
 function LinhaBacklog({ tarefa, temSprint }: { tarefa: Tarefa; temSprint: boolean }) {
   return (
     <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-panel2/40">
-      <span className="w-4 shrink-0 text-center text-[10px] font-medium text-muted/60">
-        {tarefa.prioridade}
+      <span className="flex w-5 shrink-0 flex-col items-center gap-0.5">
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${
+            tarefa.prioridade === 1
+              ? "bg-urgent"
+              : tarefa.prioridade === 2
+                ? "bg-focus"
+                : "bg-muted/40"
+          }`}
+          title={`prioridade ${tarefa.prioridade}`}
+        />
+        <span className="text-[9px] font-medium text-muted/60 tabular-nums">
+          {tarefa.prioridade}
+        </span>
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] text-cream/90">{tarefa.titulo}</p>
@@ -166,13 +189,20 @@ function Cerimonia({
   href: string;
   icone: "faisca" | "hoje" | "revisao" | "notas";
 }) {
+  const cor = {
+    faisca: "bg-sprint/12 text-sprint",
+    hoje: "bg-focus/12 text-focus",
+    revisao: "bg-review/12 text-review",
+    notas: "bg-notes/12 text-notes",
+  }[icone];
+
   return (
     <Link
       href={href}
-      className="card flex items-start gap-2.5 p-3 transition hover:border-gold/30"
+      className="card card-hover flex items-start gap-2.5 p-3"
     >
-      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-panel2 text-gold">
-        <Ico nome={icone} className="h-3 w-3" />
+      <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${cor}`}>
+        <Ico nome={icone} className="h-3.5 w-3.5" />
       </span>
       <span className="min-w-0">
         <span className="block text-xs font-medium text-cream">{titulo}</span>
@@ -204,11 +234,15 @@ function CartaoSprint({
         : 0;
 
   return (
-    <section className="card border-gold/25 bg-gradient-to-b from-gold/[0.05] to-panel/85 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="card relative overflow-hidden border-sprint/25 bg-gradient-to-br from-sprint/12 via-panel/80 to-panel/60 p-4">
+      <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-sprint/10 blur-2xl" />
+      <div className="relative flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" />
+          <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-sprint">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inset-0 animate-ping rounded-full bg-sprint/60" />
+              <span className="relative h-1.5 w-1.5 rounded-full bg-sprint" />
+            </span>
             sprint ativa
           </p>
           <h2 className="mt-1 text-lg font-semibold tracking-tight text-cream">
@@ -216,7 +250,7 @@ function CartaoSprint({
           </h2>
           {sprint.objetivo ? (
             <p className="mt-1 max-w-xl text-xs leading-relaxed text-cream/85">
-              <span className="text-gold">Objetivo:</span> {sprint.objetivo}
+              <span className="font-medium text-sprint">Objetivo:</span> {sprint.objetivo}
             </p>
           ) : (
             <p className="mt-1 text-xs text-muted">
@@ -224,25 +258,30 @@ function CartaoSprint({
             </p>
           )}
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-          <Badge tone={dias.tom}>{dias.texto}</Badge>
-          <span className="chip">
-            {dataCurta(sprint.inicio)} → {dataCurta(sprint.fim)}
-          </span>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <Anel valor={pct} tom="sprint" tamanho={54} espessura={5}>
+            <span className="text-[11px] font-semibold text-sprint tabular-nums">{pct}%</span>
+          </Anel>
+          <div className="flex flex-col items-start gap-1">
+            <Badge tone={dias.tom}>{dias.texto}</Badge>
+            <span className="chip">
+              {dataCurta(sprint.inicio)} → {dataCurta(sprint.fim)}
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] text-muted">Pontos</p>
-          <p className="text-lg font-semibold tabular-nums text-cream">
+          <p className="text-[10px] uppercase tracking-[0.1em] text-sprint/80">Pontos</p>
+          <p className="text-lg font-semibold text-sprint tabular-nums">
             {progresso.pontosFeitos}
             <span className="text-sm text-muted">/{progresso.pontosTotal}</span>
           </p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] text-muted">Itens</p>
-          <p className="text-lg font-semibold tabular-nums text-cream">
+          <p className="text-[10px] uppercase tracking-[0.1em] text-done/80">Itens</p>
+          <p className="text-lg font-semibold text-done tabular-nums">
             {progresso.feitas}
             <span className="text-sm text-muted">/{progresso.total}</span>
           </p>
@@ -257,10 +296,12 @@ function CartaoSprint({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-line/60 bg-paper/60 p-1">
-          <p className="flex items-center justify-between px-2 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted">
-            a fazer
-            <span className="tabular-nums">{abertas.length}</span>
+        <div className="rounded-lg border border-focus/20 bg-focus/[0.03] p-1">
+          <p className="flex items-center justify-between px-2 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-[0.12em] text-focus">
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-focus" />a fazer
+            </span>
+            <span className="rounded-full bg-focus/10 px-1.5 tabular-nums">{abertas.length}</span>
           </p>
           {abertas.length === 0 ? (
             <p className="px-2 py-3 text-[11px] text-muted">
@@ -270,10 +311,12 @@ function CartaoSprint({
             abertas.map((t) => <LinhaSprint key={t.id} tarefa={t} />)
           )}
         </div>
-        <div className="rounded-lg border border-line/60 bg-paper/60 p-1">
-          <p className="flex items-center justify-between px-2 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted">
-            feito
-            <span className="tabular-nums">{feitas.length}</span>
+        <div className="rounded-lg border border-done/20 bg-done/[0.03] p-1">
+          <p className="flex items-center justify-between px-2 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-[0.12em] text-done">
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-done" />feito
+            </span>
+            <span className="rounded-full bg-done/10 px-1.5 tabular-nums">{feitas.length}</span>
           </p>
           {feitas.length === 0 ? (
             <p className="px-2 py-3 text-[11px] text-muted">
@@ -285,8 +328,8 @@ function CartaoSprint({
         </div>
       </div>
 
-      <details className="mt-4 rounded-lg border border-line/60 bg-paper/50 px-3 py-2">
-        <summary className="cursor-pointer text-[11px] font-medium text-muted hover:text-cream">
+      <details className="mt-4 rounded-lg border border-sprint/20 bg-sprint/[0.03] px-3 py-2">
+        <summary className="cursor-pointer text-[11px] font-medium text-sprint/80 hover:text-sprint">
           Encerrar sprint · review + retrospectiva
         </summary>
         <form action={encerrarSprint} className="mt-3 space-y-2">
@@ -335,6 +378,8 @@ export default async function SprintsPage() {
         eyebrow="scrum"
         titulo="Sprints"
         sub="Product Backlog → Sprint → Review → Retrospectiva. Ciclos curtos com um objetivo claro: o que entra, o que sai e o que aprendemos."
+        icone="bandeira"
+        tom="sprint"
         acao={
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone={ativa ? "verde" : "neutro"}>
@@ -349,10 +394,10 @@ export default async function SprintsPage() {
         {ativa && progresso ? (
           <CartaoSprint sprint={ativa} tarefas={tarefasSprint} progresso={progresso} />
         ) : (
-          <Secao titulo="Começar um sprint">
+          <Secao titulo="Começar um sprint" tom="sprint">
             <form
               action={criarSprint}
-              className="card space-y-3 border-gold/20 bg-gradient-to-b from-gold/[0.04] to-panel/80 p-4"
+              className="card space-y-3 border-sprint/20 bg-gradient-to-br from-sprint/[0.05] to-panel/80 p-4"
             >
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
@@ -422,6 +467,7 @@ export default async function SprintsPage() {
             <div className="card divide-y divide-line/60 p-1">
               {planejadas.map((s) => (
                 <div key={s.id} className="flex items-center gap-2 px-2.5 py-2">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-sprint/50" />
                   <div className="min-w-0 flex-1">
                     <p className="text-[13px] text-cream/90">{s.nome}</p>
                     <p className="text-[10px] text-muted">
@@ -453,6 +499,7 @@ export default async function SprintsPage() {
 
         <Secao
           titulo={`Product Backlog · ${backlog.length}`}
+          tom="sprint"
           acao={
             <Link href="/tarefas" className="link-quiet text-[11px]">
               ver todas as tarefas →
@@ -509,7 +556,7 @@ export default async function SprintsPage() {
         </Secao>
 
         {concluidas.length > 0 ? (
-          <Secao titulo="Histórico">
+          <Secao titulo="Histórico" tom="feito">
             <div className="card divide-y divide-line/60 p-1">
               {concluidas.map((s) => (
                 <div key={s.id} className="px-2.5 py-2">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { criarNota, excluirNota } from "@/app/actions";
 import { BotaoEnviar } from "@/components/botao-enviar";
 import { Ico } from "@/components/icons";
-import { AREAS_DISPONIVEIS, AreaBadge, Cabecalho, Vazio } from "@/components/ui";
+import { AREAS_DISPONIVEIS, AreaBadge, Badge, Cabecalho, Vazio } from "@/components/ui";
 import { tempoRelativo } from "@/lib/format";
 import * as q from "@/lib/queries";
 
@@ -17,13 +17,25 @@ const TIPOS = [
 
 const TIPO_INFO: Record<
   string,
-  { label: string; classe: string }
+  { label: string; badge: "ouro" | "notas" | "info"; topo: string; icone: "faisca" | "notas" | "etiqueta" }
 > = {
-  insight: { label: "insight", classe: "border-gold/30 bg-gold/10 text-gold" },
-  nota: { label: "nota", classe: "border-lilac/30 bg-lilac/10 text-lilac" },
+  insight: {
+    label: "insight",
+    badge: "ouro",
+    topo: "border-t-gold/60",
+    icone: "faisca",
+  },
+  nota: {
+    label: "nota",
+    badge: "notas",
+    topo: "border-t-notes/60",
+    icone: "notas",
+  },
   referencia: {
     label: "referência",
-    classe: "border-sage/30 bg-sage/10 text-sage",
+    badge: "info",
+    topo: "border-t-info/60",
+    icone: "etiqueta",
   },
 };
 
@@ -31,7 +43,7 @@ function NovaNota() {
   return (
     <details className="group card overflow-hidden">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 text-xs font-medium text-cream transition hover:bg-panel2/40">
-        <span className="flex h-5 w-5 items-center justify-center rounded-md bg-gold/10 text-gold">
+        <span className="flex h-5 w-5 items-center justify-center rounded-md bg-notes/10 text-notes">
           <Ico nome="plus" className="h-3 w-3" />
         </span>
         Nova nota
@@ -94,7 +106,11 @@ export default async function NotasPage({
   searchParams: Promise<{ tipo?: string }>;
 }) {
   const { tipo = "todas" } = await searchParams;
-  const notas = await q.listarNotas(tipo);
+  const todas = await q.listarNotas();
+  const notas = tipo === "todas" ? todas : todas.filter((n) => n.tipo === tipo);
+
+  const contagem = new Map<string, number>();
+  for (const n of todas) contagem.set(n.tipo, (contagem.get(n.tipo) ?? 0) + 1);
 
   return (
     <div>
@@ -102,25 +118,39 @@ export default async function NotasPage({
         eyebrow="notas & insights"
         titulo="Notas"
         sub="Insights, referências e pensamentos soltos para reler e conectar."
-        acao={<span className="chip">{notas.length} registros</span>}
+        icone="notas"
+        tom="notas"
+        acao={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge tone="notas">{todas.length} registros</Badge>
+            {contagem.get("insight") ? (
+              <Badge tone="ouro">{contagem.get("insight")} insights</Badge>
+            ) : null}
+          </div>
+        }
       />
 
       <NovaNota />
 
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {TIPOS.map((t) => (
-          <Link
-            key={t.valor}
-            href={t.valor === "todas" ? "/notas" : `/notas?tipo=${t.valor}`}
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] transition ${
-              tipo === t.valor
-                ? "border-gold/40 bg-gold/10 text-gold"
-                : "border-line text-muted hover:border-gold/25 hover:text-cream"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
+        {TIPOS.map((t) => {
+          const on = tipo === t.valor;
+          const n = t.valor === "todas" ? todas.length : (contagem.get(t.valor) ?? 0);
+          return (
+            <Link
+              key={t.valor}
+              href={t.valor === "todas" ? "/notas" : `/notas?tipo=${t.valor}`}
+              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] transition ${
+                on
+                  ? "border-notes/40 bg-notes/10 font-medium text-notes"
+                  : "border-line bg-white/50 text-muted hover:border-notes/25 hover:text-cream"
+              }`}
+            >
+              {t.label}
+              <span className="tabular-nums opacity-70">{n}</span>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mt-4">
@@ -129,19 +159,23 @@ export default async function NotasPage({
             icone="notas"
             titulo="Nada guardado ainda."
             texto="Toda ideia que você não registra vira ruído de fundo. Capture uma agora — mesmo incompleta."
+            tom="notas"
           />
         ) : (
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            {notas.map((n) => {
+            {notas.map((n, i) => {
               const info = TIPO_INFO[n.tipo] ?? TIPO_INFO.nota;
               return (
-                <article key={n.id} className="group card flex flex-col p-3">
+                <article
+                  key={n.id}
+                  className={`card card-hover anim-rise group relative flex flex-col overflow-hidden border-t-2 p-3 ${info.topo}`}
+                  style={{ animationDelay: `${Math.min(i, 6) * 35}ms` }}
+                >
                   <div className="mb-2 flex items-center gap-1.5">
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${info.classe}`}
-                    >
+                    <Badge tone={info.badge}>
+                      <Ico nome={info.icone} className="h-2.5 w-2.5" />
                       {info.label}
-                    </span>
+                    </Badge>
                     <AreaBadge area={n.area} />
                     <span className="ml-auto text-[10px] text-muted/60">
                       {tempoRelativo(n.criado_em)}
@@ -176,7 +210,7 @@ export default async function NotasPage({
                         .map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full bg-panel2 px-2 py-0.5 text-[10px] text-muted"
+                            className="rounded-full border border-notes/15 bg-notes/[0.06] px-2 py-0.5 text-[10px] text-notes/80"
                           >
                             #{tag}
                           </span>
