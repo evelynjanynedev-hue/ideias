@@ -153,6 +153,30 @@ const caminhos: Record<string, ReactNode> = {
     </>
   ),
   lua: <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />,
+  ancora: (
+    <>
+      <circle cx="12" cy="5" r="2.2" />
+      <path d="M12 7.2V21M5 13a7 7 0 0 0 14 0" />
+      <path d="M3 13h4M17 13h4" />
+    </>
+  ),
+  coracao: (
+    <path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.6-7 9-7 9z" />
+  ),
+  mao: (
+    <>
+      <path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M11 11V4.5a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M14 11V6a1.5 1.5 0 0 1 3 0v7" />
+      <path d="M17 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-2.5a1.5 1.5 0 0 1 3 0" />
+    </>
+  ),
+  balanca: (
+    <>
+      <path d="M12 3v18M7 21h10" />
+      <path d="M4 7h16M6 7l-2 5a3 3 0 0 0 6 0zM18 7l-2 5a3 3 0 0 0 6 0z" />
+    </>
+  ),
 };
 
 export type IconeNome = keyof typeof caminhos;

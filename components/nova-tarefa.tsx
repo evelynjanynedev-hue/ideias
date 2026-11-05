@@ -3,6 +3,7 @@ import { AREAS_DISPONIVEIS } from "./ui";
 import { BotaoEnviar } from "./botao-enviar";
 import { Ico } from "./icons";
 import { JANELAS, janelaLabel } from "@/lib/janelas";
+import { FASES, PRESETS, duracao } from "@/lib/tempo";
 
 export function NovaTarefa({
   pessoas = [],
@@ -110,6 +111,48 @@ export function NovaTarefa({
             </select>
           </div>
         ) : null}
+
+        <details className="rounded-xl border border-line/60 bg-panel2/30 px-3 py-2 sm:col-span-2">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center gap-1.5 text-xs font-medium text-cream/85">
+            <Ico nome="ampulheta" className="h-3.5 w-3.5 text-window" />
+            Tempo por fase
+            <span className="text-[10px] font-normal text-muted">
+              opcional · se vazio, sugerimos pelo peso da tarefa
+            </span>
+          </summary>
+          <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+            {FASES.map((fase) => (
+              <label key={fase.key} className="block">
+                <span className="mb-0.5 flex items-center gap-1 text-[10px] text-muted">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: fase.cor }}
+                  />
+                  {fase.label}
+                </span>
+                <span className="relative block">
+                  <input
+                    type="number"
+                    name={`min_${fase.key}`}
+                    min={0}
+                    max={600}
+                    step={1}
+                    placeholder={String(PRESETS.media[fase.key])}
+                    className="field h-8 pr-7 text-xs tabular-nums"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[9px] text-muted/60">
+                    min
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[9px] leading-relaxed text-muted/70">
+            Rápida {FASES.map((f) => duracao(PRESETS.rapida[f.key])).join(" · ")} ·
+            média {FASES.map((f) => duracao(PRESETS.media[f.key])).join(" · ")} ·
+            profunda {FASES.map((f) => duracao(PRESETS.profunda[f.key])).join(" · ")}
+          </p>
+        </details>
 
         <label className="flex items-center gap-2 text-xs text-muted sm:col-span-2">
           <input type="checkbox" name="foco" className="h-3.5 w-3.5 accent-[#96613a]" />

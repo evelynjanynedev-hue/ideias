@@ -14,6 +14,11 @@ const numero = (fd: FormData, chave: string, padrao: number) => {
   return Number.isFinite(n) && n > 0 ? n : padrao;
 };
 
+const minutos = (fd: FormData, chave: string) => {
+  const n = Number(texto(fd, chave));
+  return Number.isFinite(n) && n > 0 ? Math.min(600, Math.round(n)) : 0;
+};
+
 const novoId = () => crypto.randomUUID();
 
 function atualizar() {
@@ -142,8 +147,9 @@ export async function criarTarefa(fd: FormData) {
 
   await executar(
     `INSERT INTO tarefas
-      (id, titulo, notas, status, prioridade, foco, area, projeto_id, pessoa_id, janela, vence_em, criado_em, demo)
-     VALUES (?, ?, NULL, 'aberta', ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      (id, titulo, notas, status, prioridade, foco, area, projeto_id, pessoa_id, janela, vence_em,
+       min_analisar, min_organizar, min_criar, min_executar, min_registrar, criado_em, demo)
+     VALUES (?, ?, NULL, 'aberta', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     novoId(),
     titulo,
     numero(fd, "prioridade", 3),
@@ -153,6 +159,11 @@ export async function criarTarefa(fd: FormData) {
     opcional(fd, "pessoa_id"),
     opcional(fd, "janela"),
     opcional(fd, "vence_em"),
+    minutos(fd, "min_analisar"),
+    minutos(fd, "min_organizar"),
+    minutos(fd, "min_criar"),
+    minutos(fd, "min_executar"),
+    minutos(fd, "min_registrar"),
     agoraISO(),
   );
 
@@ -180,6 +191,17 @@ export async function alternarTarefa(fd: FormData) {
       id,
     );
   }
+  atualizar();
+}
+
+export async function registrarResultado(fd: FormData) {
+  const id = texto(fd, "id");
+  if (!id) return;
+  await executar(
+    "UPDATE tarefas SET resultado = ? WHERE id = ?",
+    opcional(fd, "resultado"),
+    id,
+  );
   atualizar();
 }
 
@@ -384,6 +406,57 @@ export async function alternarRitual(fd: FormData) {
       janela,
     );
   }
+
+  atualizar();
+}
+
+/* ---------------- Âncoras / presença ---------------- */
+
+export async function alternarAncora(fd: FormData) {
+  const chave = texto(fd, "chave");
+  if (!chave) return;
+
+  const atual = await um<{ id: string; feito: number }>(
+    "SELECT id, feito FROM ancoras WHERE data = ? AND chave = ?",
+    hoje(),
+    chave,
+  );
+
+  if (atual) {
+    await executar(
+      "UPDATE ancoras SET feito = ? WHERE id = ?",
+      atual.feito ? 0 : 1,
+      atual.id,
+    );
+  } else {
+    await executar(
+      "INSERT INTO ancoras (id, data, chave, feito, criado_em) VALUES (?, ?, ?, 1, ?)",
+      novoId(),
+      hoje(),
+      chave,
+      agoraISO(),
+    );
+  }
+
+  atualizar();
+}
+
+export async function salvarAncora(fd: FormData) {
+  const chave = texto(fd, "chave");
+  if (!chave) return;
+
+  await executar(
+    `INSERT INTO ancoras (id, data, chave, texto, feito, criado_em)
+     VALUES (?, ?, ?, ?, 1, ?)
+     ON CONFLICT(data, chave) DO UPDATE SET
+       texto = excluded.texto,
+       feito = 1`,
+    novoId(),
+    hoje(),
+    chave,
+    opcional(fd, "texto"),
+    agoraISO(),
+  );
 
   atualizar();
 }

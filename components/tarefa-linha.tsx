@@ -1,7 +1,14 @@
-import { adiarTarefa, alternarFoco, alternarTarefa, excluirTarefa } from "@/app/actions";
+import {
+  adiarTarefa,
+  alternarFoco,
+  alternarTarefa,
+  excluirTarefa,
+  registrarResultado,
+} from "@/app/actions";
 import { dataCurta, hoje } from "@/lib/format";
 import { janelaLabel, janelaPorKey } from "@/lib/janelas";
 import type { Tarefa } from "@/lib/types";
+import { FasesTarefa, ImportanciaChip } from "./fases-tarefa";
 import { Ico } from "./icons";
 import { AreaBadge } from "./ui";
 
@@ -78,7 +85,8 @@ export function TarefaLinha({
         </p>
 
         {!feita ? (
-          <div className="mt-1 flex flex-wrap items-center gap-1">
+          <>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
             <AreaBadge area={tarefa.area} />
             {janela ? (
               <span className="chip border-window/25 bg-window/10 text-window">
@@ -116,19 +124,50 @@ export function TarefaLinha({
                     : dataCurta(tarefa.vence_em)}
               </span>
             ) : null}
-            {tarefa.foco ? (
-              <span className="chip border-focus/30 bg-focus/10 text-focus">
-                <Ico nome="alvo" className="h-2.5 w-2.5" />
-                prioridade
-              </span>
-            ) : null}
-          </div>
+            <ImportanciaChip tarefa={tarefa} />
+            </div>
+            <FasesTarefa tarefa={tarefa} compacto className="mt-1 max-w-[220px]" />
+          </>
         ) : (
-          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-done/70">
-            <Ico nome="check-circulo" className="h-2.5 w-2.5" />
-            concluída
-            <span className="ml-0.5 text-muted/50">· {prio.rotulo}</span>
-          </p>
+          <div className="mt-0.5">
+            <p className="flex flex-wrap items-center gap-1 text-[10px] text-done/70">
+              <Ico nome="check-circulo" className="h-2.5 w-2.5" />
+              concluída
+              <span className="text-muted/50">· {prio.rotulo}</span>
+              <ImportanciaChip tarefa={tarefa} curto />
+            </p>
+
+            <FasesTarefa tarefa={tarefa} compacto className="mt-1 max-w-[190px]" />
+
+            {tarefa.resultado ? (
+              <p className="mt-1 rounded-md border border-done/20 bg-done/[0.05] px-2 py-1 text-[10px] leading-relaxed text-cream/70">
+                <span className="font-medium text-done/80">resultado: </span>
+                {tarefa.resultado}
+              </p>
+            ) : null}
+
+            <details className="mt-1">
+              <summary className="cursor-pointer list-none text-[9px] text-muted/60 transition hover:text-done">
+                {tarefa.resultado ? "editar resultado" : "registrar resultado"}
+              </summary>
+              <form
+                action={registrarResultado}
+                className="mt-1 flex items-start gap-1.5"
+              >
+                <input type="hidden" name="id" value={tarefa.id} />
+                <textarea
+                  name="resultado"
+                  rows={2}
+                  defaultValue={tarefa.resultado ?? ""}
+                  placeholder="O que ficou de concreto depois disso?"
+                  className="field flex-1 resize-y text-[10px] leading-relaxed"
+                />
+                <button type="submit" className="btn-ghost h-7 px-2 text-[10px]">
+                  salvar
+                </button>
+              </form>
+            </details>
+          </div>
         )}
       </div>
 

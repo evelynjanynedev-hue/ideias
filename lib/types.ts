@@ -23,9 +23,24 @@ export type Tarefa = {
   vence_em: string | null;
   sprint_id: string | null;
   pontos: number;
+  min_analisar: number;
+  min_organizar: number;
+  min_criar: number;
+  min_executar: number;
+  min_registrar: number;
+  resultado: string | null;
   criado_em: string;
   concluido_em: string | null;
   demo: number;
+};
+
+export type Ancora = {
+  id: string;
+  data: string;
+  chave: string;
+  texto: string | null;
+  feito: number;
+  criado_em: string;
 };
 
 export type Nota = {

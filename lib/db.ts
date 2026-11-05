@@ -89,6 +89,12 @@ CREATE TABLE IF NOT EXISTS tarefas (
   vence_em TEXT,
   sprint_id TEXT,
   pontos INTEGER NOT NULL DEFAULT 0,
+  min_analisar INTEGER NOT NULL DEFAULT 0,
+  min_organizar INTEGER NOT NULL DEFAULT 0,
+  min_criar INTEGER NOT NULL DEFAULT 0,
+  min_executar INTEGER NOT NULL DEFAULT 0,
+  min_registrar INTEGER NOT NULL DEFAULT 0,
+  resultado TEXT,
   criado_em TEXT NOT NULL,
   concluido_em TEXT,
   demo INTEGER NOT NULL DEFAULT 0
@@ -142,6 +148,16 @@ CREATE TABLE IF NOT EXISTS rituais (
   UNIQUE (data, janela)
 );
 
+CREATE TABLE IF NOT EXISTS ancoras (
+  id TEXT PRIMARY KEY,
+  data TEXT NOT NULL,
+  chave TEXT NOT NULL,
+  texto TEXT,
+  feito INTEGER NOT NULL DEFAULT 0,
+  criado_em TEXT NOT NULL,
+  UNIQUE (data, chave)
+);
+
 CREATE TABLE IF NOT EXISTS revisoes (
   id TEXT PRIMARY KEY,
   data TEXT NOT NULL UNIQUE,
@@ -167,6 +183,7 @@ CREATE INDEX IF NOT EXISTS idx_itens_status ON itens (status, criado_em);
 CREATE INDEX IF NOT EXISTS idx_tarefas_status ON tarefas (status, vence_em);
 CREATE INDEX IF NOT EXISTS idx_tarefas_projeto ON tarefas (projeto_id);
 CREATE INDEX IF NOT EXISTS idx_rituais_data ON rituais (data);
+CREATE INDEX IF NOT EXISTS idx_ancoras_data ON ancoras (data, chave);
 `;
 
 /**
@@ -213,6 +230,24 @@ async function migrar(db: Client): Promise<void> {
   }
   if (!colunas.has("pontos")) {
     await db.execute("ALTER TABLE tarefas ADD COLUMN pontos INTEGER NOT NULL DEFAULT 0");
+  }
+
+  for (const coluna of [
+    "min_analisar",
+    "min_organizar",
+    "min_criar",
+    "min_executar",
+    "min_registrar",
+  ]) {
+    if (!colunas.has(coluna)) {
+      await db.execute(
+        `ALTER TABLE tarefas ADD COLUMN ${coluna} INTEGER NOT NULL DEFAULT 0`,
+      );
+    }
+  }
+
+  if (!colunas.has("resultado")) {
+    await db.execute("ALTER TABLE tarefas ADD COLUMN resultado TEXT");
   }
 
   // Só depois de garantir a coluna é possível indexá-la.

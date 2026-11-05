@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ResumoGlobal } from "@/lib/queries";
+import { PRATICAS } from "@/lib/presenca";
 import { Ico, type IconeNome } from "./icons";
 
 function Pill({
@@ -87,6 +88,14 @@ export function TopBar({
         texto={`foco ${resumo.foco}/3`}
         tom="border-focus/30 bg-focus/10 text-focus"
         alerta={resumo.foco > 0}
+      />
+
+      <Pill
+        href="/presenca"
+        icone="ancora"
+        texto={`âncoras ${resumo.ancoras}/${PRATICAS.length}`}
+        tom="border-sage/30 bg-sage/10 text-sage"
+        alerta={resumo.ancoras === 0}
       />
 
       {resumo.hoje > 0 ? (

@@ -1,6 +1,8 @@
 import { todos, um, type Param } from "./db";
 import { adicionarDias, isoDate } from "./format";
+import { PRATICAS } from "./presenca";
 import type {
+  Ancora,
   Item,
   Nota,
   Pessoa,
@@ -26,6 +28,33 @@ export async function listarInbox(): Promise<Item[]> {
 export async function listarProcessados(limite = 8): Promise<Item[]> {
   return todos<Item>(
     "SELECT * FROM itens WHERE status = 'processado' ORDER BY criado_em DESC LIMIT ?",
+    limite,
+  );
+}
+
+/* ---------- Âncoras / presença ---------- */
+
+export async function ancorasHoje(): Promise<Ancora[]> {
+  return todos<Ancora>(
+    "SELECT * FROM ancoras WHERE data = ? ORDER BY criado_em ASC",
+    isoDate(),
+  );
+}
+
+export async function contarAncorasHoje(): Promise<{ feitas: number; total: number }> {
+  const linha = await um<{ feitas: number }>(
+    "SELECT COUNT(*) AS feitas FROM ancoras WHERE data = ? AND feito = 1",
+    isoDate(),
+  );
+  return { feitas: linha?.feitas ?? 0, total: PRATICAS.length };
+}
+
+export async function ancorasDaSemana(limite = 30): Promise<Ancora[]> {
+  return todos<Ancora>(
+    `SELECT * FROM ancoras
+     WHERE data >= ? AND feito = 1
+     ORDER BY data DESC, criado_em DESC LIMIT ?`,
+    adicionarDias(-7),
     limite,
   );
 }
@@ -341,6 +370,7 @@ export type ResumoGlobal = {
   backlog: number;
   revisouHoje: number;
   feitasSemana: number;
+  ancoras: number;
 };
 
 export async function resumoGlobal(): Promise<ResumoGlobal> {
@@ -361,6 +391,7 @@ export async function resumoGlobal(): Promise<ResumoGlobal> {
     backlog: number;
     revisou_hoje: number;
     feitas_semana: number;
+    ancoras: number;
   }>(
     `SELECT
        (SELECT COUNT(*) FROM itens WHERE status = 'inbox') AS inbox,
@@ -370,6 +401,7 @@ export async function resumoGlobal(): Promise<ResumoGlobal> {
        (SELECT COUNT(*) FROM tarefas WHERE status = 'aberta') AS abertas,
        (SELECT COUNT(*) FROM tarefas WHERE status = 'feita' AND substr(concluido_em, 1, 10) = ?) AS feitas_hoje,
        (SELECT COUNT(*) FROM rituais WHERE data = ? AND feito = 1) AS rituais,
+       (SELECT COUNT(*) FROM ancoras WHERE data = ? AND feito = 1) AS ancoras,
        (SELECT COUNT(*) FROM pessoas
          WHERE (proximo_em IS NOT NULL AND proximo_em <= ?)
             OR ultimo_contato IS NULL
@@ -380,6 +412,7 @@ export async function resumoGlobal(): Promise<ResumoGlobal> {
        (SELECT COUNT(*) FROM revisoes WHERE data = ?) AS revisou_hoje,
        (SELECT COUNT(*) FROM tarefas
          WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?) AS feitas_semana`,
+    h,
     h,
     h,
     h,
@@ -403,6 +436,7 @@ export async function resumoGlobal(): Promise<ResumoGlobal> {
     backlog: linha?.backlog ?? 0,
     revisouHoje: linha?.revisou_hoje ?? 0,
     feitasSemana: linha?.feitas_semana ?? 0,
+    ancoras: linha?.ancoras ?? 0,
   };
 }
 
@@ -431,6 +465,7 @@ export async function resumoSemana(): Promise<{
   rituais: number;
   contatos: number;
   revisoes: number;
+  ancoras: number;
 }> {
   const semana = adicionarDias(-7);
   const linha = await um<{
@@ -439,13 +474,16 @@ export async function resumoSemana(): Promise<{
     rituais: number;
     contatos: number;
     revisoes: number;
+    ancoras: number;
   }>(
     `SELECT
        (SELECT COUNT(*) FROM tarefas WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?) AS feitas,
        (SELECT COUNT(*) FROM notas WHERE criado_em >= ?) AS notas,
        (SELECT COUNT(*) FROM rituais WHERE data >= ? AND feito = 1) AS rituais,
        (SELECT COUNT(*) FROM pessoas WHERE ultimo_contato >= ?) AS contatos,
-       (SELECT COUNT(*) FROM revisoes WHERE data >= ?) AS revisoes`,
+       (SELECT COUNT(*) FROM revisoes WHERE data >= ?) AS revisoes,
+       (SELECT COUNT(*) FROM ancoras WHERE data >= ? AND feito = 1) AS ancoras`,
+    semana,
     semana,
     semana,
     semana,
@@ -459,6 +497,7 @@ export async function resumoSemana(): Promise<{
     rituais: linha?.rituais ?? 0,
     contatos: linha?.contatos ?? 0,
     revisoes: linha?.revisoes ?? 0,
+    ancoras: linha?.ancoras ?? 0,
   };
 }
 

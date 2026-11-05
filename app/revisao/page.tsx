@@ -69,19 +69,39 @@ function Numero({
 }
 
 export default async function RevisaoPage() {
-  const [resumo, semana, concluidas, notas, exemplos, revisoes, projetos, pessoas, atrasadas] =
-    await Promise.all([
-      q.resumoRevisao(),
-      q.resumoSemana(),
-      q.tarefasConcluidasSemana(12),
-      q.notasDaSemana(),
-      q.contarExemplos(),
-      q.contarRevisoes(),
-      q.projetosSemProximaAcao(),
-      q.pessoasParaRetomar(3),
-      q.tarefasAtrasadas(),
-    ]);
+  const [
+    resumo,
+    semana,
+    concluidas,
+    notas,
+    exemplos,
+    revisoes,
+    projetos,
+    pessoas,
+    atrasadas,
+    ancoras,
+  ] = await Promise.all([
+    q.resumoRevisao(),
+    q.resumoSemana(),
+    q.tarefasConcluidasSemana(12),
+    q.notasDaSemana(),
+    q.contarExemplos(),
+    q.contarRevisoes(),
+    q.projetosSemProximaAcao(),
+    q.pessoasParaRetomar(3),
+    q.tarefasAtrasadas(),
+    q.ancorasDaSemana(60),
+  ]);
   const h = hoje();
+  const gratidoes = ancoras.filter(
+    (a) => a.chave === "gratidao" && (a.texto ?? "").trim().length > 0,
+  );
+  const perdoes = ancoras.filter(
+    (a) => a.chave === "perdao" && (a.texto ?? "").trim().length > 0,
+  );
+  const comResultado = concluidas.filter(
+    (t) => (t.resultado ?? "").trim().length > 0,
+  );
 
   const frentes = [
     resumo.inbox,
@@ -138,10 +158,11 @@ export default async function RevisaoPage() {
             </div>
           </div>
 
-          <div className="relative mt-3 grid grid-cols-4 gap-1.5">
+          <div className="relative mt-3 grid grid-cols-5 gap-1.5">
             <Numero valor={semana.feitas} rotulo="feitas" tom="text-done" />
             <Numero valor={semana.notas} rotulo="notas" tom="text-notes" />
             <Numero valor={semana.rituais} rotulo="rituais" tom="text-window" />
+            <Numero valor={semana.ancoras} rotulo="âncoras" tom="text-sage" />
             <Numero valor={semana.contatos} rotulo="contatos" tom="text-people" />
           </div>
 
@@ -221,8 +242,15 @@ export default async function RevisaoPage() {
                       <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-done/15 text-done">
                         <Ico nome="check" className="h-2.5 w-2.5" strokeWidth={2.8} />
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-xs text-cream/70 line-through decoration-done/30">
-                        {t.titulo}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs text-cream/70 line-through decoration-done/30">
+                          {t.titulo}
+                        </span>
+                        {t.resultado ? (
+                          <span className="mt-0.5 block truncate text-[10px] text-done/70">
+                            resultado: {t.resultado}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="shrink-0 text-[10px] text-muted/60">
                         {t.concluido_em ? dataCurta(t.concluido_em.slice(0, 10)) : ""}
@@ -234,12 +262,110 @@ export default async function RevisaoPage() {
             )}
           </Secao>
 
+          <Secao
+            titulo="Gratidão & perdão da semana"
+            tom="rosa"
+            contagem={gratidoes.length + perdoes.length}
+            acao={
+              <Link href="/presenca" className="link-quiet text-[11px]">
+                praticar hoje →
+              </Link>
+            }
+          >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="card border-rose/20 p-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-rose">
+                  <Ico nome="coracao" className="h-3.5 w-3.5" />
+                  gratidão
+                </p>
+                {gratidoes.length === 0 ? (
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+                    Nenhuma gratidão registrada. Nomeie três coisas concretas que sustentaram a
+                    semana — uma pessoa, um corpo, um pequeno gesto.
+                  </p>
+                ) : (
+                  <ul className="mt-1.5 space-y-1.5">
+                    {gratidoes.slice(0, 4).map((a) => (
+                      <li key={a.id} className="flex gap-2 text-[11px] leading-relaxed text-cream/75">
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-rose/60" />
+                        <span className="min-w-0">
+                          <span className="block whitespace-pre-line">{a.texto}</span>
+                          <span className="text-[9px] text-muted/50">{dataCurta(a.data)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="card border-lilac/20 p-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-lilac">
+                  <Ico nome="balanca" className="h-3.5 w-3.5" />
+                  perdão e soltura
+                </p>
+                {perdoes.length === 0 ? (
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+                    Nada solto ainda. Perdoar não é concordar: é devolver o peso que não é seu e
+                    parar de repetir a mesma história.
+                  </p>
+                ) : (
+                  <ul className="mt-1.5 space-y-1.5">
+                    {perdoes.slice(0, 4).map((a) => (
+                      <li key={a.id} className="flex gap-2 text-[11px] leading-relaxed text-cream/75">
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-lilac/60" />
+                        <span className="min-w-0">
+                          <span className="block whitespace-pre-line">{a.texto}</span>
+                          <span className="text-[9px] text-muted/50">{dataCurta(a.data)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </Secao>
+
+          <Secao
+            titulo="O que o tempo virou"
+            tom="janela"
+            contagem={comResultado.length}
+          >
+            <div className="card p-3">
+              <p className="text-[11px] leading-relaxed text-muted">
+                Tempo gasto só vira resultado quando é registrado. Olhe para a semana e pergunte:
+                <span className="text-cream/80"> quanto tempo foi análise, quanto foi execução — e o que ficou de concreto?</span>
+              </p>
+              {comResultado.length === 0 ? (
+                <p className="mt-2 rounded-lg border border-dashed border-line/80 px-2.5 py-2 text-[11px] text-muted/70">
+                  Nenhum resultado registrado ainda. Ao concluir uma tarefa, escreva o que ficou de
+                  concreto — mesmo que seja “não deu certo, aprendi isso”.
+                </p>
+              ) : (
+                <ul className="mt-2 space-y-1.5">
+                  {comResultado.slice(0, 5).map((t) => (
+                    <li
+                      key={t.id}
+                      className="rounded-lg border border-window/15 bg-window/[0.04] px-2.5 py-2"
+                    >
+                      <p className="text-[11px] font-medium text-cream/80">{t.titulo}</p>
+                      <p className="mt-0.5 text-[10px] leading-relaxed text-muted">{t.resultado}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link href="/presenca" className="link-quiet mt-2 block text-[10px]">
+                rever as cinco fases →
+              </Link>
+            </div>
+          </Secao>
+
           <Secao titulo="As perguntas da semana" tom="revisao">
             <div className="card p-3">
               <ol className="space-y-2.5 text-xs leading-relaxed text-cream/80">
                 {[
                   "O que funcionou e deve continuar?",
                   "O que travou, e qual foi a causa real?",
+                  "Quanto tempo foi análise e quanto foi execução?",
                   "O que estou carregando que não é meu?",
                   "Qual é a única prioridade da próxima semana?",
                 ].map((pergunta, i) => (

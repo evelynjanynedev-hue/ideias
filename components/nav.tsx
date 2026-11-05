@@ -4,9 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ResumoGlobal } from "@/lib/queries";
+import { PRATICAS } from "@/lib/presenca";
 import { Ico, type IconeNome } from "./icons";
 
-type TomNav = "foco" | "inbox" | "ouro" | "sprint" | "notas" | "pessoas" | "projetos" | "janela" | "revisao";
+type TomNav =
+  | "foco"
+  | "inbox"
+  | "ouro"
+  | "sprint"
+  | "notas"
+  | "pessoas"
+  | "projetos"
+  | "janela"
+  | "presenca"
+  | "revisao";
 
 type ItemNav = {
   href: string;
@@ -62,6 +73,14 @@ const ITENS: ItemNav[] = [
     grupo: "ritmo",
   },
   {
+    href: "/presenca",
+    nome: "Presença",
+    curto: "Presença",
+    icone: "ancora",
+    tom: "presenca",
+    grupo: "ritmo",
+  },
+  {
     href: "/revisao",
     nome: "Revisão",
     curto: "Revisão",
@@ -80,6 +99,7 @@ const ATIVO: Record<TomNav, string> = {
   pessoas: "bg-people/16 text-people",
   projetos: "bg-projects/16 text-projects",
   janela: "bg-window/16 text-window",
+  presenca: "bg-sage/16 text-sage",
   revisao: "bg-review/16 text-review",
 };
 
@@ -92,6 +112,7 @@ const TILE: Record<TomNav, string> = {
   pessoas: "bg-people/16 text-people",
   projetos: "bg-projects/16 text-projects",
   janela: "bg-window/16 text-window",
+  presenca: "bg-sage/16 text-sage",
   revisao: "bg-review/16 text-review",
 };
 
@@ -104,6 +125,7 @@ const TILE_FORTE: Record<TomNav, string> = {
   pessoas: "bg-people text-white shadow-sm",
   projetos: "bg-projects text-white shadow-sm",
   janela: "bg-window text-white shadow-sm",
+  presenca: "bg-sage text-white shadow-sm",
   revisao: "bg-review text-white shadow-sm",
 };
 
@@ -116,6 +138,7 @@ const BARRA: Record<TomNav, string> = {
   pessoas: "bg-people",
   projetos: "bg-projects",
   janela: "bg-window",
+  presenca: "bg-sage",
   revisao: "bg-review",
 };
 
@@ -128,6 +151,7 @@ const BADGE: Record<TomNav, string> = {
   pessoas: "bg-people/15 text-people",
   projetos: "bg-projects/15 text-projects",
   janela: "bg-window/15 text-window",
+  presenca: "bg-sage/15 text-sage",
   revisao: "bg-review/15 text-review",
 };
 
@@ -153,6 +177,11 @@ function contagem(item: ItemNav, r: ResumoGlobal): { texto: string; urgente: boo
       return r.pessoas > 0 ? { texto: String(r.pessoas), urgente: false } : null;
     case "/janelas":
       return { texto: `${r.rituais}/12`, urgente: false };
+    case "/presenca":
+      return {
+        texto: `${r.ancoras}/${PRATICAS.length}`,
+        urgente: r.ancoras === 0,
+      };
     case "/revisao":
       return r.revisouHoje > 0 ? null : { texto: "•", urgente: true };
     default:

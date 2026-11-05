@@ -62,7 +62,13 @@ passo.
 
 - **Nada fica solto na cabeça.** Tudo entra na Caixa de entrada e é processado em tarefa, nota,
   pessoa ou projeto.
-- **Pouca coisa importa por dia.** No máximo 3 prioridades, com uma estrela de foco.
+- **Presença antes de produção.** Todo dia a tela **Hoje** abre com uma afirmação, uma pergunta e
+  práticas de ancoragem — incluindo **gratidão** e **perdão**. Ler “esteja presente, ancore” é
+  ritual, não enfeite.
+- **Pouca coisa importa por dia.** No máximo 3 prioridades, com uma estrela de foco — e
+  **importância explícita** (alta, média ou leve) em cada tarefa.
+- **Tempo não é uma coisa só.** Cada decisão separa **analisar, organizar, criar, executar e
+  registrar**, com minutos estimados e um orçamento de tempo do dia.
 - **O dia tem ritmo.** As 12 janelas do relógio dos órgãos viram faixas de 2h com uma intenção
   clara.
 - **O ciclo fecha.** Uma revisão semanal mostra o que ficou para trás — sem culpa, com decisão.
@@ -90,6 +96,10 @@ flowchart LR
 A tela inicial mostra a janela atual (com a intenção daquela faixa de 2h), quanto tempo falta para
 ela acabar, as **3 prioridades** do dia e os alertas do que pede atenção. É o seu painel de
 partida — não precisa configurar nada.
+
+Antes de qualquer tarefa, o bloco **Presença do dia** traz a afirmação da data, uma pergunta de
+ancoragem e o atalho para as seis práticas. Ele é determinístico: a mesma data sempre traz a mesma
+frase, para virar ritual em vez de novidade.
 
 ### 2. Capture tudo na **Caixa de entrada**
 
@@ -131,6 +141,8 @@ contato, rituais não feitos. Você decide o destino de cada coisa e registra co
 | Quero… | Vá em |
 |---|---|
 | despejar uma ideia agora | **Hoje** → captura rápida |
+| começar o dia presente | **Hoje** → presença do dia, ou **Presença** para as seis práticas |
+| dar tempo a uma decisão | **Presença** → cinco fases e orçamento de decisão |
 | ver o que tenho para fazer | **Tarefas** (filtre por área ou projeto) |
 | planejar a semana | **Sprints** → criar sprint → puxar do backlog |
 | guardar um aprendizado | **Notas** (com tags, área e vínculos) |
@@ -149,15 +161,16 @@ tela cheia, como um app nativo.
 
 | Tela | O que faz |
 |---|---|
-| **Hoje** | Janela atual com intenção, tempo restante, as 3 prioridades, captura rápida e alertas do que pede atenção. |
+| **Hoje** | Janela atual com intenção, tempo restante, afirmação de presença, as 3 prioridades, orçamento de tempo por fase, captura rápida e alertas do que pede atenção. |
+| **Presença** | Afirmação diária, seis práticas de ancoragem (presença, respiração, corpo, gratidão, perdão, intenção), guia das cinco fases e quanto tempo vale cada decisão. |
 | **Caixa de entrada** | Captura sem julgar. Cada item vira tarefa, nota, pessoa, projeto — ou é arquivado/excluído. |
-| **Tarefas** | Lista única com filtros por área e projeto, grupos por atraso/hoje/semana, foco, conclusão e adiamento em 1 clique. |
+| **Tarefas** | Lista única com filtros por área e projeto, grupos por atraso/hoje/semana, foco, importância explícita, tempo por fase, conclusão, resultado registrado e adiamento em 1 clique. |
 | **Sprints** | Scrum enxuto: objetivo do sprint, product backlog, story points, board a fazer/feito, encerramento com retrospectiva. |
 | **Notas** | Insights, notas e referências com tags, área e vínculo com pessoas e projetos. |
 | **Pessoas** | Rede com contexto, último contato, próximo passo e data — para não deixar relações esfriarem. |
 | **Projetos** | Resultado esperado, status, próxima ação e progresso a partir das tarefas vinculadas. |
 | **Janelas** | As 12 faixas do dia, o órgão e o modo de cada uma, com ritual diário marcável. |
-| **Revisão** | Fechamento semanal: inbox, atrasadas, projetos parados, pessoas sem contato, rituais e registro da semana. |
+| **Revisão** | Fechamento semanal: inbox, atrasadas, projetos parados, pessoas sem contato, rituais, âncoras, gratidão, perdão, resultados registrados e registro da semana. |
 
 Outros detalhes:
 
@@ -186,14 +199,22 @@ você reconhece de onde vem o item e o que ele pede:
 | 🔵 **Índigo** | sprints | backlog, board, pontos, retrospectiva |
 | 🌹 **Rosa** | revisão | ciclo semanal, pendências, fechamento |
 | 🟤 **Cobre** | janelas do dia | janela atual, rituais, ritmo |
+| 🟣 **Lilás** | presença / ancoragem | afirmação do dia, práticas, perdão |
+| 🌿 **Verde-sálvia** | presença concluída | práticas feitas, âncoras do dia |
+| 🔵 **Azul** | fase analisar | tempo de entender o problema |
+| 🟣 **Violeta** | fase organizar | tempo de escolher o menor caminho |
+| 🟡 **Ouro** | fase criar | tempo da primeira versão |
+| 🟠 **Âmbar** | fase executar | tempo de fazer a coisa |
+| 🟢 **Verde** | fase registrar | tempo de anotar o resultado |
 
 ### Um painel global em todas as páginas
 
-- **Barra de status no topo** (desktop e mobile): janela atual, inbox, atrasadas, foco, tarefas de
-  hoje e o contador de **feitas hoje**. Se algo está pegando fogo, você vê antes de rolar a página.
+- **Barra de status no topo** (desktop e mobile): janela atual, inbox, atrasadas, foco, âncoras do
+  dia, tarefas de hoje e o contador de **feitas hoje**. Se algo está pegando fogo, você vê antes de
+  rolar a página.
 - **Menu lateral colorido e agrupado** em *Fluxo* (Hoje, Inbox, Tarefas), *Contexto* (Sprints,
-  Projetos, Pessoas, Notas) e *Ritmo* (Janelas, Revisão), cada item com **contador ao vivo** e
-  ponto vermelho quando há urgência.
+  Projetos, Pessoas, Notas) e *Ritmo* (Janelas, Presença, Revisão), cada item com **contador ao
+  vivo** e ponto vermelho quando há urgência.
 - **No celular**, barra inferior com as 4 telas principais e um menu **Mais** com todo o resto —
   incluindo os mesmos contadores.
 - **O que já foi feito não some**: a tela **Hoje** tem a seção *Concluídas hoje* e a **Revisão**
@@ -364,6 +385,43 @@ foco — seu corpo tem a última palavra.
 
 ---
 
+## 🧘 Presença, tempo e decisão
+
+A tela **Hoje** abre com a **presença do dia**: uma afirmação escolhida pela data, uma âncora
+corporal, uma pergunta e uma prática. Em **Presença** (`/presenca`) ficam as seis práticas:
+
+| Prática | Tempo | O que faz |
+|---|---|---|
+| **Esteja presente** | 1 min | pés no chão, ombros soltos, “eu estou aqui” |
+| **Respire e ancore** | 2 min | três respirações lentas (4–4–6) |
+| **Sinta o corpo** | 2 min | atenção pelos pés, mãos, peito e rosto |
+| **Gratidão concreta** | 3 min | três coisas reais que sustentaram o dia |
+| **Perdão e soltura** | 3 min | devolver o peso que não é seu |
+| **Intenção do dia** | 1 min | uma palavra que orienta as escolhas |
+
+Cada tarefa também carrega **cinco fases de tempo**:
+
+```
+analisar → organizar → criar → executar → registrar
+```
+
+Ao criar uma tarefa, os minutos de cada fase são opcionais. Se ficarem vazios, o app sugere um
+preset pelo peso da tarefa (rápida, média ou profunda). Ao concluir, o campo **resultado** fecha o
+ciclo: não basta executar, é preciso registrar o que ficou de concreto.
+
+A **importância** de cada tarefa é explícita — `alta`, `média` ou `leve` — derivada do foco, da
+prioridade e do prazo. E as decisões têm orçamento próprio:
+
+| Decisão | Tempo | Regra |
+|---|---|---|
+| Rápida | até 2 min | se não muda o rumo da semana, decida agora |
+| Média | ~10 min | escreva as opções, escolha uma e registre o porquê |
+| Estrutural | 30–60 min | marque uma janela e defina o critério antes de escolher |
+
+> Clareza não é ter todas as respostas. É saber a próxima pergunta.
+
+---
+
 ## 🗂️ Estrutura do projeto
 
 ```
@@ -376,6 +434,7 @@ app/
   pessoas/          # rede com contexto e próximo passo
   projetos/         # resultado + próxima ação + progresso
   janelas/          # as 12 janelas e rituais do dia
+  presenca/         # afirmação diária, práticas, fases e decisões
   revisao/          # fechamento semanal
   api/health/       # healthcheck do deploy
   actions.ts        # todas as mutações (server actions)
@@ -385,6 +444,8 @@ lib/
   db.ts             # schema, seed e cliente libSQL (arquivo local ou Turso)
   queries.ts        # leituras
   janelas.ts        # dados do relógio dos órgãos
+  presenca.ts       # afirmações, práticas e âncoras
+  tempo.ts          # fases, presets, importância e orçamento de tempo
   format.ts         # datas em pt-BR
   config.ts         # seu nome
   types.ts          # tipos compartilhados
@@ -438,6 +499,8 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 
 - [x] Captura → processamento → tarefa/nota/pessoa/projeto
 - [x] Janelas do dia com ritual e tarefas por faixa
+- [x] Presença diária com afirmação, ancoragem, gratidão e perdão
+- [x] Cinco fases de tempo por tarefa, importância explícita e resultado registrado
 - [x] 3 prioridades, foco e conclusão
 - [x] Pessoas com próximo passo e registro de contato
 - [x] Projetos com próxima ação e progresso

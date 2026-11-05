@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { alternarRitual } from "./actions";
+import { AncoraDoDia } from "@/components/ancora-do-dia";
 import { Captura } from "@/components/captura";
+import { FasesTarefa } from "@/components/fases-tarefa";
 import { Ico, type IconeNome } from "@/components/icons";
 import { TarefaLinha } from "@/components/tarefa-linha";
 import { Anel, Cabecalho, Kpi, Secao } from "@/components/ui";
 import { NOME } from "@/lib/config";
 import { diaSemanaLongo, saudacao, tempoRelativo } from "@/lib/format";
+import { afirmacaoDoDia } from "@/lib/presenca";
+import { FASES, duracao, orcamento } from "@/lib/tempo";
 import {
   janelaAtual,
   janelaLabel,
@@ -83,6 +87,7 @@ export default async function HojePage() {
     todasPessoas,
     sprint,
     feitasHoje,
+    ancoras,
   ] = await Promise.all([
     q.rituaisHoje(),
     q.contarRituaisHoje(),
@@ -97,6 +102,7 @@ export default async function HojePage() {
     q.listarPessoas(),
     q.sprintAtiva(),
     q.tarefasFeitasHoje(),
+    q.ancorasHoje(),
   ]);
 
   const progressoSprint = sprint ? await q.progressoSprint(sprint.id) : null;
@@ -107,6 +113,13 @@ export default async function HojePage() {
   const nomeProjeto = new Map(projetos.map((p) => [p.id, p.nome]));
   const nomePessoa = new Map(todasPessoas.map((p) => [p.id, p.nome]));
   const projetosAtivos = projetos.filter((p) => p.status === "ativo").length;
+
+  const afirmacao = afirmacaoDoDia(agora);
+  const tempo = orcamento(foco.length > 0 ? foco : tarefasHoje);
+  const maiorFase = FASES.reduce(
+    (maior, fase) => (tempo.porFase[fase.key] > tempo.porFase[maior.key] ? fase : maior),
+    FASES[0],
+  );
 
   const pedeAtencao =
     inbox + atrasadas.length + pessoas.length + semAcao.length + tarefasHoje.length;
@@ -138,6 +151,8 @@ export default async function HojePage() {
           </div>
         }
       />
+
+      <AncoraDoDia afirmacao={afirmacao} ancoras={ancoras} />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         {/* Janela atual */}
@@ -410,6 +425,82 @@ export default async function HojePage() {
         </div>
 
         <aside className="min-w-0 space-y-5">
+          <Secao
+            titulo="Tempo & fases"
+            tom="janela"
+            acao={
+              <Link href="/presenca" className="link-quiet text-[11px]">
+                guia →
+              </Link>
+            }
+          >
+            <div className="card p-3">
+              <div className="flex items-center gap-2.5">
+                <span className="icon-tile h-8 w-8 bg-window/12 text-window">
+                  <Ico nome="ampulheta" className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-[0.09em] text-muted">
+                    orçamento de hoje
+                  </p>
+                  <p className="text-sm font-semibold text-cream tabular-nums">
+                    {duracao(tempo.total)}
+                    <span className="ml-1.5 text-[10px] font-normal text-muted">
+                      {tempo.total > 0
+                        ? `· maior fatia em ${maiorFase.label.toLowerCase()}`
+                        : "· escolha uma prioridade"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-panel2">
+                {FASES.map((fase) => (
+                  <span
+                    key={fase.key}
+                    className="h-full"
+                    style={{
+                      width: `${tempo.total > 0 ? (tempo.porFase[fase.key] / tempo.total) * 100 : 0}%`,
+                      backgroundColor: fase.cor,
+                    }}
+                    title={`${fase.label} · ${duracao(tempo.porFase[fase.key])}`}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+                {FASES.map((fase) => (
+                  <div key={fase.key} className="flex items-center gap-1.5 text-[10px]">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: fase.cor }}
+                    />
+                    <span className="text-muted">{fase.label}</span>
+                    <span className="ml-auto text-cream/75 tabular-nums">
+                      {duracao(tempo.porFase[fase.key])}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {(foco.length > 0 ? foco : tarefasHoje).length > 0 ? (
+                <div className="mt-2.5 space-y-2 border-t border-line/50 pt-2">
+                  {(foco.length > 0 ? foco : tarefasHoje).slice(0, 3).map((t) => (
+                    <div key={t.id}>
+                      <p className="truncate text-[11px] text-cream/80">{t.titulo}</p>
+                      <FasesTarefa tarefa={t} compacto />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <p className="mt-2 border-t border-line/50 pt-2 text-[10px] leading-relaxed text-muted/70">
+                Analisar, organizar, criar, executar e registrar. Cada fase tem seu tempo — e a
+                decisão de quanto vale é sua.
+              </p>
+            </div>
+          </Secao>
+
           <Secao titulo="Pede atenção" tom={pedeAtencao > 0 ? "urgente" : "feito"}>
             {pedeAtencao === 0 ? (
               <div className="rounded-card border border-done/25 bg-done/[0.06] px-3 py-3">
