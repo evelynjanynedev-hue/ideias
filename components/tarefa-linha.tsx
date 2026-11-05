@@ -5,6 +5,7 @@ import {
   excluirTarefa,
   registrarResultado,
 } from "@/app/actions";
+import Link from "next/link";
 import { dataCurta, hoje } from "@/lib/format";
 import { janelaLabel, janelaPorKey } from "@/lib/janelas";
 import type { Tarefa } from "@/lib/types";
@@ -173,6 +174,13 @@ export function TarefaLinha({
 
       {!feita ? (
         <div className="flex items-center gap-0.5">
+          <Link
+            href={`/presenca?tarefa=${tarefa.id}&fase=executar`}
+            title="Abrir relógio de foco nesta tarefa"
+            className="btn-quiet text-muted opacity-50 hover:text-window hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          >
+            <Ico nome="ampulheta" className="h-3.5 w-3.5" />
+          </Link>
           <form action={adiarTarefa}>
             <input type="hidden" name="id" value={tarefa.id} />
             <button

@@ -4,6 +4,7 @@ import { AncoraDoDia } from "@/components/ancora-do-dia";
 import { Captura } from "@/components/captura";
 import { FasesTarefa } from "@/components/fases-tarefa";
 import { Ico, type IconeNome } from "@/components/icons";
+import { Pomodoro } from "@/components/pomodoro";
 import { TarefaLinha } from "@/components/tarefa-linha";
 import { Anel, Cabecalho, Kpi, Secao } from "@/components/ui";
 import { NOME } from "@/lib/config";
@@ -120,6 +121,9 @@ export default async function HojePage() {
     (maior, fase) => (tempo.porFase[fase.key] > tempo.porFase[maior.key] ? fase : maior),
     FASES[0],
   );
+  const tarefasRelogio = [...foco, ...tarefasHoje]
+    .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
+    .slice(0, 8);
 
   const pedeAtencao =
     inbox + atrasadas.length + pessoas.length + semAcao.length + tarefasHoje.length;
@@ -425,6 +429,16 @@ export default async function HojePage() {
         </div>
 
         <aside className="min-w-0 space-y-5">
+          <Secao
+            titulo="Relógio de foco"
+            tom="foco"
+            acao={
+              <span className="text-[10px] text-muted/70">pomodoro por fase</span>
+            }
+          >
+            <Pomodoro tarefas={tarefasRelogio} compacto />
+          </Secao>
+
           <Secao
             titulo="Tempo & fases"
             tom="janela"

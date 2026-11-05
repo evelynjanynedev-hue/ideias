@@ -7,6 +7,7 @@ import {
 import { BotaoEnviar } from "@/components/botao-enviar";
 import { FasesTarefa } from "@/components/fases-tarefa";
 import { Ico } from "@/components/icons";
+import { Pomodoro } from "@/components/pomodoro";
 import { Anel, Cabecalho, Progresso, Secao } from "@/components/ui";
 import { dataCurta, diaSemanaLongo, hoje } from "@/lib/format";
 import {
@@ -155,10 +156,11 @@ export default async function PresencaPage() {
   const agora = new Date();
   const afirmacao = afirmacaoDoDia(agora);
 
-  const [ancoras, foco, tarefasHoje] = await Promise.all([
+  const [ancoras, foco, tarefasHoje, abertas] = await Promise.all([
     q.ancorasHoje(),
     q.tarefasFoco(),
     q.tarefasDeHoje(),
+    q.listarTarefasAbertas(),
   ]);
 
   const porChave = new Map(ancoras.map((a) => [a.chave, a]));
@@ -374,6 +376,18 @@ export default async function PresencaPage() {
         </div>
 
         <div className="min-w-0 space-y-5">
+          <Secao
+            titulo="Relógio de foco"
+            tom="foco"
+            acao={
+              <span className="text-[10px] text-muted/70">
+                pomodoro por fase
+              </span>
+            }
+          >
+            <Pomodoro tarefas={abertas} />
+          </Secao>
+
           <Secao
             titulo="Tempo do dia"
             tom="janela"

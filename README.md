@@ -69,6 +69,8 @@ passo.
   **importância explícita** (alta, média ou leve) em cada tarefa.
 - **Tempo não é uma coisa só.** Cada decisão separa **analisar, organizar, criar, executar e
   registrar**, com minutos estimados e um orçamento de tempo do dia.
+- **O foco tem relógio.** Um pomodoro por fase conta o tempo de análise, execução ou registro,
+  continua ao trocar de tela e fecha com o resultado da tarefa.
 - **O dia tem ritmo.** As 12 janelas do relógio dos órgãos viram faixas de 2h com uma intenção
   clara.
 - **O ciclo fecha.** Uma revisão semanal mostra o que ficou para trás — sem culpa, com decisão.
@@ -162,9 +164,9 @@ tela cheia, como um app nativo.
 | Tela | O que faz |
 |---|---|
 | **Hoje** | Janela atual com intenção, tempo restante, afirmação de presença, as 3 prioridades, orçamento de tempo por fase, captura rápida e alertas do que pede atenção. |
-| **Presença** | Afirmação diária, seis práticas de ancoragem (presença, respiração, corpo, gratidão, perdão, intenção), guia das cinco fases e quanto tempo vale cada decisão. |
+| **Presença** | Afirmação diária, seis práticas de ancoragem (presença, respiração, corpo, gratidão, perdão, intenção), relógio pomodoro por fase, guia das cinco fases e quanto tempo vale cada decisão. |
 | **Caixa de entrada** | Captura sem julgar. Cada item vira tarefa, nota, pessoa, projeto — ou é arquivado/excluído. |
-| **Tarefas** | Lista única com filtros por área e projeto, grupos por atraso/hoje/semana, foco, importância explícita, tempo por fase, conclusão, resultado registrado e adiamento em 1 clique. |
+| **Tarefas** | Lista única com filtros por área e projeto, grupos por atraso/hoje/semana, foco, importância explícita, tempo por fase, atalho para o relógio de foco, conclusão, resultado registrado e adiamento em 1 clique. |
 | **Sprints** | Scrum enxuto: objetivo do sprint, product backlog, story points, board a fazer/feito, encerramento com retrospectiva. |
 | **Notas** | Insights, notas e referências com tags, área e vínculo com pessoas e projetos. |
 | **Pessoas** | Rede com contexto, último contato, próximo passo e data — para não deixar relações esfriarem. |
@@ -409,6 +411,15 @@ Ao criar uma tarefa, os minutos de cada fase são opcionais. Se ficarem vazios, 
 preset pelo peso da tarefa (rápida, média ou profunda). Ao concluir, o campo **resultado** fecha o
 ciclo: não basta executar, é preciso registrar o que ficou de concreto.
 
+O **relógio de foco** transforma a fase escolhida em um pomodoro:
+
+- escolha a tarefa e a fase (analisar, organizar, criar, executar ou registrar);
+- o tempo inicial vem dos minutos daquela fase na tarefa — ou de um padrão (5, 5, 10, 25, 5);
+- o relógio continua ao trocar de tela, mostra a contagem no título da aba e avisa quando termina;
+- ao final, o próprio relógio abre o campo para **registrar o resultado** daquela sessão.
+
+Ele aparece na tela **Hoje**, na página **Presença** e no atalho de cada tarefa em **Tarefas**.
+
 A **importância** de cada tarefa é explícita — `alta`, `média` ou `leve` — derivada do foco, da
 prioridade e do prazo. E as decisões têm orçamento próprio:
 
@@ -501,6 +512,7 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 - [x] Janelas do dia com ritual e tarefas por faixa
 - [x] Presença diária com afirmação, ancoragem, gratidão e perdão
 - [x] Cinco fases de tempo por tarefa, importância explícita e resultado registrado
+- [x] Relógio pomodoro por fase, com estado persistente e registro do resultado
 - [x] 3 prioridades, foco e conclusão
 - [x] Pessoas com próximo passo e registro de contato
 - [x] Projetos com próxima ação e progresso
