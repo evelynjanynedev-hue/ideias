@@ -42,6 +42,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Libera assets estáticos e o healthcheck para as plataformas de deploy.
   matcher: [
-    "/((?!api/health|_next/static|_next/image|icon.svg|manifest.webmanifest|favicon.ico).*)",
+    // api/ideias tem autenticação própria por token (agente do WhatsApp).
+    "/((?!api/health|api/ideias|_next/static|_next/image|icon.svg|manifest.webmanifest|favicon.ico).*)",
   ],
 };

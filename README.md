@@ -293,6 +293,72 @@ ipconfig getifaddr en0        # pega o IP do Mac
 
 ---
 
+## 🤖 API de ideias (agente no WhatsApp)
+
+Além da interface, o Zyra expõe uma rota pequena para um agente externo jogar ideias na
+caixa de entrada e ler o que está pendente. É assim que o assistente no WhatsApp
+(Open Instinct + Hermes local) conversa com o app.
+
+Autenticação por token, separada do Basic Auth da interface:
+
+```
+Authorization: Bearer <ZYRA_API_TOKEN>
+```
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `POST` | `/api/ideias` | Captura uma ideia na caixa de entrada |
+| `GET` | `/api/ideias` | Devolve caixa de entrada, foco do dia e atrasadas |
+
+```bash
+# capturar
+curl -X POST http://127.0.0.1:3001/api/ideias \
+  -H "Authorization: Bearer $ZYRA_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "estudar libSQL", "fonte": "whatsapp"}'
+
+# ler
+curl http://127.0.0.1:3001/api/ideias \
+  -H "Authorization: Bearer $ZYRA_API_TOKEN"
+```
+
+Respostas:
+
+```json
+// POST 201
+{ "ok": true, "id": "uuid", "texto": "estudar libSQL", "fonte": "whatsapp" }
+
+// GET 200
+{
+  "ok": true,
+  "inbox": { "total": 1, "itens": [{ "id": "uuid", "texto": "estudar libSQL", "fonte": "whatsapp", "criado_em": "..." }] },
+  "foco": [{ "id": "uuid", "titulo": "Fechar sprint", "prioridade": 1, "janela": "manhã", "vence_em": null }],
+  "atrasadas": [{ "id": "uuid", "titulo": "Responder e-mail", "vence_em": "2026-11-01" }]
+}
+```
+
+Sem token, ou com token errado, a rota responde `401`. Se `ZYRA_API_TOKEN` não estiver
+definida, a rota fica **desligada** (sempre 401).
+
+### Ligar no agente do WhatsApp
+
+No `open-instinct`, duas ferramentas usam essa rota: `zyra_capture` e `zyra_inbox`. O
+`start-wpp.sh` lê `ZYRA_API_TOKEN` de `~/Library/Application Support/zyra/zyra.env` e
+exporta `ZYRA_URL` (`http://127.0.0.1:3001` por padrão).
+
+Depois de conectado, no WhatsApp:
+
+| Você manda | O que acontece |
+|---|---|
+| "anota no Zyra: comprar café" | vira item na caixa de entrada |
+| "ideia: app de rotina de sono" | idem |
+| "o que tem no Zyra?" | resumo da caixa, do foco e das atrasadas |
+
+O app precisa estar no ar. Em produção, defina `ZYRA_API_TOKEN` no host (Vercel,
+Railway, `zyra.env` do launchd) e aponte `ZYRA_URL` para o endereço público.
+
+---
+
 ## ☁️ Deploy em produção
 
 Dois caminhos, ambos com **link fixo** e **banco persistente**:
@@ -326,6 +392,7 @@ Principais variáveis:
 | `ZYRA_SEED` | `0` em produção | `0` = **banco zerado**; `1` = dados de exemplo. |
 | `ZYRA_PASSWORD` | vazio | Ativa HTTP Basic Auth. **Defina em produção.** |
 | `ZYRA_USER` | `zyra` | Usuário do Basic Auth. |
+| `ZYRA_API_TOKEN` | vazio | Token da API `/api/ideias` usada pelo agente. Sem ela, a rota fica desligada. |
 | `PORT` | `3001` | Porta do servidor. |
 
 O guia completo (Turso, Vercel, Railway, Render, Fly.io, VPS, backup e checklist de segurança) está
@@ -452,6 +519,7 @@ app/
   presenca/         # afirmação diária, práticas, fases e decisões
   revisao/          # fechamento semanal
   api/health/       # healthcheck do deploy
+  api/ideias/       # captura e leitura por token (agente do WhatsApp)
   actions.ts        # todas as mutações (server actions)
   layout.tsx        # navegação, metadados e PWA
   globals.css       # tema (papel, tinta e ouro)
