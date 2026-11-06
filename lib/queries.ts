@@ -6,12 +6,25 @@ import type {
   Item,
   Nota,
   Pessoa,
+  Pomodoro,
   ProgressoProjeto,
   ProgressoSprint,
   Projeto,
   Sprint,
   Tarefa,
 } from "./types";
+
+/* ---------- janela de um dia no fuso local ---------- */
+
+function inicioDoDia(data: string): string {
+  const [ano, mes, dia] = data.split("-").map(Number);
+  return new Date(ano, mes - 1, dia, 0, 0, 0, 0).toISOString();
+}
+
+function fimDoDia(data: string): string {
+  const [ano, mes, dia] = data.split("-").map(Number);
+  return new Date(ano, mes - 1, dia + 1, 0, 0, 0, 0).toISOString();
+}
 
 /* ---------- Caixa de entrada ---------- */
 
@@ -57,6 +70,65 @@ export async function ancorasDaSemana(limite = 30): Promise<Ancora[]> {
     adicionarDias(-7),
     limite,
   );
+}
+
+/* ---------- Pomodoros / foco ---------- */
+
+const SQL_POMODOROS = `SELECT p.*, t.titulo AS tarefa_titulo
+  FROM pomodoros p
+  LEFT JOIN tarefas t ON t.id = p.tarefa_id`;
+
+export async function pomodorosHoje(limite = 40): Promise<Pomodoro[]> {
+  const dia = isoDate();
+  return todos<Pomodoro>(
+    `${SQL_POMODOROS}
+     WHERE p.concluido_em >= ? AND p.concluido_em < ?
+     ORDER BY p.concluido_em DESC LIMIT ?`,
+    inicioDoDia(dia),
+    fimDoDia(dia),
+    limite,
+  );
+}
+
+export async function pomodorosDaSemana(limite = 60): Promise<Pomodoro[]> {
+  return todos<Pomodoro>(
+    `${SQL_POMODOROS}
+     WHERE p.concluido_em >= ?
+     ORDER BY p.concluido_em DESC LIMIT ?`,
+    inicioDoDia(adicionarDias(-7)),
+    limite,
+  );
+}
+
+export async function resumoPomodorosHoje(): Promise<{
+  sessoes: number;
+  minutos: number;
+  pausas: number;
+}> {
+  const dia = isoDate();
+  const inicio = inicioDoDia(dia);
+  const fim = fimDoDia(dia);
+  const linha = await um<{
+    sessoes: number;
+    minutos: number;
+    pausas: number;
+  }>(
+    `SELECT
+       (SELECT COUNT(*) FROM pomodoros WHERE tipo = 'foco' AND concluido_em >= ? AND concluido_em < ?) AS sessoes,
+       (SELECT COALESCE(SUM(minutos), 0) FROM pomodoros WHERE tipo = 'foco' AND concluido_em >= ? AND concluido_em < ?) AS minutos,
+       (SELECT COUNT(*) FROM pomodoros WHERE tipo = 'pausa' AND concluido_em >= ? AND concluido_em < ?) AS pausas`,
+    inicio,
+    fim,
+    inicio,
+    fim,
+    inicio,
+    fim,
+  );
+  return {
+    sessoes: linha?.sessoes ?? 0,
+    minutos: linha?.minutos ?? 0,
+    pausas: linha?.pausas ?? 0,
+  };
 }
 
 /* ---------- Tarefas ---------- */
@@ -466,6 +538,8 @@ export async function resumoSemana(): Promise<{
   contatos: number;
   revisoes: number;
   ancoras: number;
+  pomodoros: number;
+  minutosFoco: number;
 }> {
   const semana = adicionarDias(-7);
   const linha = await um<{
@@ -475,6 +549,8 @@ export async function resumoSemana(): Promise<{
     contatos: number;
     revisoes: number;
     ancoras: number;
+    pomodoros: number;
+    minutos_foco: number;
   }>(
     `SELECT
        (SELECT COUNT(*) FROM tarefas WHERE status = 'feita' AND substr(concluido_em, 1, 10) >= ?) AS feitas,
@@ -482,13 +558,17 @@ export async function resumoSemana(): Promise<{
        (SELECT COUNT(*) FROM rituais WHERE data >= ? AND feito = 1) AS rituais,
        (SELECT COUNT(*) FROM pessoas WHERE ultimo_contato >= ?) AS contatos,
        (SELECT COUNT(*) FROM revisoes WHERE data >= ?) AS revisoes,
-       (SELECT COUNT(*) FROM ancoras WHERE data >= ? AND feito = 1) AS ancoras`,
+       (SELECT COUNT(*) FROM ancoras WHERE data >= ? AND feito = 1) AS ancoras,
+       (SELECT COUNT(*) FROM pomodoros WHERE tipo = 'foco' AND concluido_em >= ?) AS pomodoros,
+       (SELECT COALESCE(SUM(minutos), 0) FROM pomodoros WHERE tipo = 'foco' AND concluido_em >= ?) AS minutos_foco`,
     semana,
     semana,
     semana,
     semana,
     semana,
     semana,
+    inicioDoDia(semana),
+    inicioDoDia(semana),
   );
 
   return {
@@ -498,6 +578,8 @@ export async function resumoSemana(): Promise<{
     contatos: linha?.contatos ?? 0,
     revisoes: linha?.revisoes ?? 0,
     ancoras: linha?.ancoras ?? 0,
+    pomodoros: linha?.pomodoros ?? 0,
+    minutosFoco: linha?.minutos_foco ?? 0,
   };
 }
 

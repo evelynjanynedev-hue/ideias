@@ -158,6 +158,17 @@ CREATE TABLE IF NOT EXISTS ancoras (
   UNIQUE (data, chave)
 );
 
+CREATE TABLE IF NOT EXISTS pomodoros (
+  id TEXT PRIMARY KEY,
+  tarefa_id TEXT,
+  fase TEXT NOT NULL,
+  tipo TEXT NOT NULL DEFAULT 'foco',
+  minutos INTEGER NOT NULL DEFAULT 0,
+  iniciado_em TEXT NOT NULL,
+  concluido_em TEXT NOT NULL,
+  demo INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS revisoes (
   id TEXT PRIMARY KEY,
   data TEXT NOT NULL UNIQUE,
@@ -184,6 +195,8 @@ CREATE INDEX IF NOT EXISTS idx_tarefas_status ON tarefas (status, vence_em);
 CREATE INDEX IF NOT EXISTS idx_tarefas_projeto ON tarefas (projeto_id);
 CREATE INDEX IF NOT EXISTS idx_rituais_data ON rituais (data);
 CREATE INDEX IF NOT EXISTS idx_ancoras_data ON ancoras (data, chave);
+CREATE INDEX IF NOT EXISTS idx_pomodoros_tarefa ON pomodoros (tarefa_id, concluido_em);
+CREATE INDEX IF NOT EXISTS idx_pomodoros_data ON pomodoros (concluido_em);
 `;
 
 /**

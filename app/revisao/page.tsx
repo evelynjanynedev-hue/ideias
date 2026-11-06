@@ -4,6 +4,7 @@ import { BotaoEnviar } from "@/components/botao-enviar";
 import { Ico, type IconeNome } from "@/components/icons";
 import { Anel, Badge, Cabecalho, Secao, type Tom } from "@/components/ui";
 import { dataCurta, diaSemanaLongo, hoje, tempoRelativo } from "@/lib/format";
+import { duracao } from "@/lib/tempo";
 import * as q from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +81,7 @@ export default async function RevisaoPage() {
     pessoas,
     atrasadas,
     ancoras,
+    pomodoros,
   ] = await Promise.all([
     q.resumoRevisao(),
     q.resumoSemana(),
@@ -91,6 +93,7 @@ export default async function RevisaoPage() {
     q.pessoasParaRetomar(3),
     q.tarefasAtrasadas(),
     q.ancorasDaSemana(60),
+    q.pomodorosDaSemana(40),
   ]);
   const h = hoje();
   const gratidoes = ancoras.filter(
@@ -102,6 +105,9 @@ export default async function RevisaoPage() {
   const comResultado = concluidas.filter(
     (t) => (t.resultado ?? "").trim().length > 0,
   );
+  const sessoesFoco = pomodoros.filter((s) => s.tipo === "foco");
+  const minutosFoco = semana.minutosFoco;
+  const pausas = pomodoros.filter((s) => s.tipo === "pausa");
 
   const frentes = [
     resumo.inbox,
@@ -323,6 +329,80 @@ export default async function RevisaoPage() {
                 )}
               </div>
             </div>
+          </Secao>
+
+          <Secao
+            titulo="Foco da semana"
+            tom="foco"
+            contagem={semana.pomodoros}
+            acao={
+              <span className="text-[10px] text-muted/70">
+                {duracao(minutosFoco)} de foco
+              </span>
+            }
+          >
+            {sessoesFoco.length === 0 ? (
+              <div className="card flex items-center gap-3 px-3 py-3">
+                <span className="icon-tile h-8 w-8 bg-focus/10 text-focus/70">
+                  <Ico nome="ampulheta" className="h-4 w-4" />
+                </span>
+                <p className="text-[11px] leading-relaxed text-muted">
+                  Nenhuma sessão de foco concluída nos últimos 7 dias. O relógio
+                  de foco está na tela Hoje e na Presença.
+                </p>
+              </div>
+            ) : (
+              <div className="card p-3">
+                <div className="grid grid-cols-3 gap-1.5">
+                  <Numero
+                    valor={semana.pomodoros}
+                    rotulo="sessões"
+                    tom="text-focus"
+                  />
+                  <Numero
+                    valor={minutosFoco}
+                    rotulo="min de foco"
+                    tom="text-window"
+                  />
+                  <Numero
+                    valor={pausas.length}
+                    rotulo="pausas"
+                    tom="text-info"
+                  />
+                </div>
+
+                <ul className="mt-2 space-y-1">
+                  {pomodoros.slice(0, 6).map((s) => {
+                    const pausa = s.tipo === "pausa";
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex items-center gap-2 rounded-lg border border-line/50 bg-white/40 px-2 py-1.5"
+                      >
+                        <span
+                          className={`shrink-0 text-[9px] font-medium uppercase tracking-[0.08em] ${pausa ? "text-info" : "text-focus"}`}
+                        >
+                          {pausa ? "pausa" : s.fase}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[11px] text-cream/75">
+                          {s.tarefa_titulo || "tempo livre"}
+                        </span>
+                        <span className="shrink-0 text-[10px] text-muted/60 tabular-nums">
+                          {s.minutos} min
+                        </span>
+                        <span className="w-10 shrink-0 text-right text-[9px] text-muted/40">
+                          {dataCurta(s.concluido_em.slice(0, 10))}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <Link href="/presenca" className="link-quiet mt-2 block text-[10px]">
+                  abrir o relógio de foco →
+                </Link>
+              </div>
+            )}
           </Secao>
 
           <Secao

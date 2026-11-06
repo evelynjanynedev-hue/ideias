@@ -152,15 +152,25 @@ function CartaoPratica({
   );
 }
 
+function horaCurta(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default async function PresencaPage() {
   const agora = new Date();
   const afirmacao = afirmacaoDoDia(agora);
 
-  const [ancoras, foco, tarefasHoje, abertas] = await Promise.all([
+  const [ancoras, foco, tarefasHoje, abertas, pomodorosHoje] = await Promise.all([
     q.ancorasHoje(),
     q.tarefasFoco(),
     q.tarefasDeHoje(),
     q.listarTarefasAbertas(),
+    q.pomodorosHoje(),
   ]);
 
   const porChave = new Map(ancoras.map((a) => [a.chave, a]));
@@ -172,6 +182,9 @@ export default async function PresencaPage() {
     (maior, fase) => (tempo.porFase[fase.key] > tempo.porFase[maior.key] ? fase : maior),
     FASES[0],
   );
+  const focoHoje = pomodorosHoje.filter((s) => s.tipo === "foco");
+  const minutosFocoHoje = focoHoje.reduce((soma, s) => soma + s.minutos, 0);
+  const sessoesHoje = pomodorosHoje.length;
 
   return (
     <div>
@@ -385,7 +398,67 @@ export default async function PresencaPage() {
               </span>
             }
           >
-            <Pomodoro tarefas={abertas} />
+            <Pomodoro tarefas={abertas} sessoes={pomodorosHoje} />
+          </Secao>
+
+          <Secao
+            titulo="Sessões de hoje"
+            tom="feito"
+            contagem={focoHoje.length}
+            acao={
+              <span className="text-[10px] text-muted/70">
+                {duracao(minutosFocoHoje)} de foco
+              </span>
+            }
+          >
+            {sessoesHoje === 0 ? (
+              <div className="card flex items-center gap-3 px-3 py-3">
+                <span className="icon-tile h-8 w-8 bg-done/10 text-done/70">
+                  <Ico nome="ampulheta" className="h-4 w-4" />
+                </span>
+                <p className="text-[11px] leading-relaxed text-muted">
+                  Nenhuma sessão concluída hoje. Inicie o relógio acima e o histórico
+                  aparece aqui.
+                </p>
+              </div>
+            ) : (
+              <div className="card overflow-hidden">
+                <ul className="divide-y divide-line/40">
+                  {pomodorosHoje.map((s) => {
+                    const fase = FASES.find((f) => f.key === s.fase);
+                    const pausa = s.tipo === "pausa";
+                    const cor = pausa ? "#2f7089" : (fase?.cor ?? "#8b8377");
+                    const rotulo = pausa ? "pausa" : (fase?.curto ?? s.fase);
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex items-center gap-2 px-3 py-2"
+                      >
+                        <span
+                          className="shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.08em]"
+                          style={{
+                            borderColor: `${cor}44`,
+                            backgroundColor: `${cor}12`,
+                            color: cor,
+                          }}
+                        >
+                          {rotulo}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-xs text-cream/80">
+                          {s.tarefa_titulo || "tempo livre"}
+                        </span>
+                        <span className="shrink-0 text-[10px] text-muted/70 tabular-nums">
+                          {s.minutos} min
+                        </span>
+                        <span className="w-9 shrink-0 text-right text-[10px] text-muted/45 tabular-nums">
+                          {horaCurta(s.concluido_em)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </Secao>
 
           <Secao

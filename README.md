@@ -70,7 +70,7 @@ passo.
 - **Tempo não é uma coisa só.** Cada decisão separa **analisar, organizar, criar, executar e
   registrar**, com minutos estimados e um orçamento de tempo do dia.
 - **O foco tem relógio.** Um pomodoro por fase conta o tempo de análise, execução ou registro,
-  continua ao trocar de tela e fecha com o resultado da tarefa.
+  continua ao trocar de tela, sugere uma pausa de 5 min, guarda o histórico e avisa quando termina.
 - **O dia tem ritmo.** As 12 janelas do relógio dos órgãos viram faixas de 2h com uma intenção
   clara.
 - **O ciclo fecha.** Uma revisão semanal mostra o que ficou para trás — sem culpa, com decisão.
@@ -416,9 +416,13 @@ O **relógio de foco** transforma a fase escolhida em um pomodoro:
 - escolha a tarefa e a fase (analisar, organizar, criar, executar ou registrar);
 - o tempo inicial vem dos minutos daquela fase na tarefa — ou de um padrão (5, 5, 10, 25, 5);
 - o relógio continua ao trocar de tela, mostra a contagem no título da aba e avisa quando termina;
-- ao final, o próprio relógio abre o campo para **registrar o resultado** daquela sessão.
+- ao final, o próprio relógio abre o campo para **registrar o resultado** daquela sessão;
+- uma **pausa de 5 min** é sugerida entre sessões — respire, beba água, solte o resultado;
+- cada sessão concluída entra no **histórico** do dia e da semana, com tarefa, fase e minutos;
+- com permissão do navegador, uma **notificação** avisa quando o foco ou a pausa termina.
 
 Ele aparece na tela **Hoje**, na página **Presença** e no atalho de cada tarefa em **Tarefas**.
+O histórico do dia fica em **Presença** e o resumo da semana em **Revisão**.
 
 A **importância** de cada tarefa é explícita — `alta`, `média` ou `leve` — derivada do foco, da
 prioridade e do prazo. E as decisões têm orçamento próprio:
@@ -513,6 +517,7 @@ Os backups ficam em `backups/` (também ignorado pelo git).
 - [x] Presença diária com afirmação, ancoragem, gratidão e perdão
 - [x] Cinco fases de tempo por tarefa, importância explícita e resultado registrado
 - [x] Relógio pomodoro por fase, com estado persistente e registro do resultado
+- [x] Pausa de 5 min, histórico de sessões e notificação do navegador
 - [x] 3 prioridades, foco e conclusão
 - [x] Pessoas com próximo passo e registro de contato
 - [x] Projetos com próxima ação e progresso

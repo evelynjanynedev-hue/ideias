@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { registrarResultado } from "@/app/actions";
+import { registrarPomodoro, registrarResultado } from "@/app/actions";
 import { FASES, duracao, fasesDaTarefa, type FaseKey } from "@/lib/tempo";
-import type { Tarefa } from "@/lib/types";
+import type { Pomodoro as SessaoPomodoro, Tarefa } from "@/lib/types";
 import { Ico } from "./icons";
 
 const PADRAO: Record<FaseKey, number> = {
@@ -15,15 +16,30 @@ const PADRAO: Record<FaseKey, number> = {
   registrar: 5,
 };
 
-const CHAVE = "zyra.pomodoro.v1";
+const PAUSA_MINUTOS = 5;
+const CHAVE = "zyra.pomodoro.v2";
+
+type Tipo = "foco" | "pausa";
 
 type Salvo = {
   fase: FaseKey;
+  tipo: Tipo;
   tarefaId: string;
   total: number;
   restante: number;
   rodando: boolean;
   fimEm: number | null;
+  sessaoId: string | null;
+  iniciadoEm: string | null;
+};
+
+type SessaoAtiva = {
+  id: string;
+  tarefaId: string | null;
+  fase: string;
+  tipo: Tipo;
+  minutos: number;
+  iniciadoEm: string;
 };
 
 function formatar(segundos: number): string {
@@ -63,19 +79,49 @@ function tocarSinal() {
   }
 }
 
+function notificar(titulo: string, corpo: string) {
+  try {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(titulo, {
+        body: corpo,
+        icon: "/icon.svg",
+        tag: "zyra-pomodoro",
+      });
+    }
+  } catch {
+    /* notificação é um extra */
+  }
+}
+
+function pedirPermissao() {
+  try {
+    if ("Notification" in window && Notification.permission === "default") {
+      void Notification.requestPermission();
+    }
+  } catch {
+    /* alguns navegadores bloqueiam sem gesto */
+  }
+}
+
 /**
  * Pomodoro por fase: analisar, organizar, criar, executar e registrar.
  * O tempo de cada fase vem da própria tarefa; sem tarefa, usa um padrão.
  * O estado vive no navegador, então o relógio continua ao trocar de tela.
+ * Cada sessão concluída vira histórico no banco e o resultado pode ser
+ * registrado na própria tarefa.
  */
 export function Pomodoro({
   tarefas = [],
+  sessoes = [],
   compacto = false,
 }: {
   tarefas?: Tarefa[];
+  sessoes?: SessaoPomodoro[];
   compacto?: boolean;
 }) {
+  const router = useRouter();
   const [fase, setFase] = useState<FaseKey>("executar");
+  const [tipo, setTipo] = useState<Tipo>("foco");
   const [tarefaId, setTarefaId] = useState("");
   const [total, setTotal] = useState(PADRAO.executar * 60);
   const [restante, setRestante] = useState(PADRAO.executar * 60);
@@ -83,14 +129,30 @@ export function Pomodoro({
   const [fimEm, setFimEm] = useState<number | null>(null);
   const [concluido, setConcluido] = useState(false);
   const [pronto, setPronto] = useState(false);
+  const sessaoRef = useRef<SessaoAtiva | null>(null);
   const tituloOriginal = useRef<string | null>(null);
+  const urlAplicada = useRef(false);
 
   const tarefaAtual = useMemo(
     () => tarefas.find((t) => t.id === tarefaId),
     [tarefas, tarefaId],
   );
   const faseAtual = FASES.find((f) => f.key === fase) ?? FASES[3];
-  const cor = faseAtual.cor;
+  const cor = tipo === "pausa" ? "#2f7089" : faseAtual.cor;
+
+  const sessoesFoco = useMemo(
+    () => sessoes.filter((s) => s.tipo === "foco"),
+    [sessoes],
+  );
+  const minutosHoje = sessoesFoco.reduce((soma, s) => soma + s.minutos, 0);
+  const sessoesTarefa = useMemo(
+    () =>
+      tarefaId
+        ? sessoesFoco.filter((s) => s.tarefa_id === tarefaId)
+        : [],
+    [sessoesFoco, tarefaId],
+  );
+  const minutosTarefa = sessoesTarefa.reduce((soma, s) => soma + s.minutos, 0);
 
   /* Carrega o último relógio salvo. */
   useEffect(() => {
@@ -102,14 +164,16 @@ export function Pomodoro({
           salvo.fase && FASES.some((f) => f.key === salvo.fase)
             ? salvo.fase
             : "executar";
+        const novoTipo: Tipo = salvo.tipo === "pausa" ? "pausa" : "foco";
         const novoTarefaId =
           typeof salvo.tarefaId === "string" ? salvo.tarefaId : "";
         const novoTotal =
           typeof salvo.total === "number" && salvo.total > 0
             ? salvo.total
-            : PADRAO[novaFase] * 60;
+            : (novoTipo === "pausa" ? PAUSA_MINUTOS : PADRAO[novaFase]) * 60;
 
         setFase(novaFase);
+        setTipo(novoTipo);
         setTarefaId(novoTarefaId);
         setTotal(novoTotal);
 
@@ -123,9 +187,45 @@ export function Pomodoro({
             setRodando(false);
             setFimEm(null);
             setConcluido(true);
+
+            const sessaoId =
+              typeof salvo.sessaoId === "string" ? salvo.sessaoId : "";
+            if (sessaoId) {
+              void registrarPomodoro({
+                id: sessaoId,
+                tarefaId: novoTarefaId || null,
+                fase: novoTipo === "pausa" ? "pausa" : novaFase,
+                tipo: novoTipo,
+                minutos: Math.max(1, Math.round(novoTotal / 60)),
+                iniciadoEm:
+                  typeof salvo.iniciadoEm === "string" && salvo.iniciadoEm
+                    ? salvo.iniciadoEm
+                    : new Date(Date.now() - novoTotal * 1000).toISOString(),
+              })
+                .then(() => router.refresh())
+                .catch(() => {
+                  /* se o banco falhar, o relógio continua local */
+                });
+            }
           } else {
             setRodando(true);
             setFimEm(salvo.fimEm);
+            sessaoRef.current = {
+              id:
+                typeof salvo.sessaoId === "string" && salvo.sessaoId
+                  ? salvo.sessaoId
+                  : crypto.randomUUID(),
+              tarefaId: novoTarefaId || null,
+              fase: novoTipo === "pausa" ? "pausa" : novaFase,
+              tipo: novoTipo,
+              minutos: Math.max(1, Math.round(novoTotal / 60)),
+              iniciadoEm:
+                typeof salvo.iniciadoEm === "string" && salvo.iniciadoEm
+                  ? salvo.iniciadoEm
+                  : new Date(
+                      Date.now() - (novoTotal - seg) * 1000,
+                    ).toISOString(),
+            };
           }
         } else {
           setRestante(
@@ -148,12 +248,23 @@ export function Pomodoro({
   useEffect(() => {
     if (!pronto) return;
     try {
-      const salvo: Salvo = { fase, tarefaId, total, restante, rodando, fimEm };
+      const ativa = sessaoRef.current;
+      const salvo: Salvo = {
+        fase,
+        tipo,
+        tarefaId,
+        total,
+        restante,
+        rodando,
+        fimEm,
+        sessaoId: ativa?.id ?? null,
+        iniciadoEm: ativa?.iniciadoEm ?? null,
+      };
       window.localStorage.setItem(CHAVE, JSON.stringify(salvo));
     } catch {
       /* modo privado pode bloquear o storage */
     }
-  }, [pronto, fase, tarefaId, total, restante, rodando, fimEm]);
+  }, [pronto, fase, tipo, tarefaId, total, restante, rodando, fimEm]);
 
   /* Se a tarefa salva saiu da lista, volta para tempo livre. */
   useEffect(() => {
@@ -163,7 +274,6 @@ export function Pomodoro({
   }, [tarefas, tarefaId]);
 
   /* Permite abrir o relógio já apontando para uma tarefa e fase. */
-  const urlAplicada = useRef(false);
   useEffect(() => {
     if (urlAplicada.current) return;
     urlAplicada.current = true;
@@ -183,12 +293,14 @@ export function Pomodoro({
       const minutos = minutosDaFase(tarefa, novaFase);
 
       setFase(novaFase);
+      setTipo("foco");
       if (tarefaUrl) setTarefaId(tarefaUrl);
       setTotal(minutos * 60);
       setRestante(minutos * 60);
       setRodando(false);
       setFimEm(null);
       setConcluido(false);
+      sessaoRef.current = null;
     } catch {
       /* URL inválida: segue o estado salvo */
     }
@@ -206,13 +318,37 @@ export function Pomodoro({
         setFimEm(null);
         setConcluido(true);
         tocarSinal();
+
+        const ativa = sessaoRef.current;
+        sessaoRef.current = null;
+
+        if (ativa) {
+          notificar(
+            ativa.tipo === "pausa" ? "Pausa concluída" : "Sessão concluída",
+            ativa.tipo === "pausa"
+              ? "Volte ao foco quando estiver pronta."
+              : `${ativa.minutos} min de ${ativa.fase} concluídos. Registre o resultado.`,
+          );
+          void registrarPomodoro({
+            id: ativa.id,
+            tarefaId: ativa.tarefaId,
+            fase: ativa.fase,
+            tipo: ativa.tipo,
+            minutos: ativa.minutos,
+            iniciadoEm: ativa.iniciadoEm,
+          })
+            .then(() => router.refresh())
+            .catch(() => {
+              /* se o banco falhar, o relógio continua local */
+            });
+        }
       }
     };
 
     tick();
     const id = window.setInterval(tick, 500);
     return () => window.clearInterval(id);
-  }, [rodando, fimEm]);
+  }, [rodando, fimEm, router]);
 
   /* Mostra a contagem no título da aba enquanto o foco está ativo. */
   useEffect(() => {
@@ -220,12 +356,13 @@ export function Pomodoro({
       if (tituloOriginal.current === null) {
         tituloOriginal.current = document.title;
       }
-      document.title = `${formatar(restante)} · ${faseAtual.label} — Zyra`;
+      const rotulo = tipo === "pausa" ? "Pausa" : faseAtual.label;
+      document.title = `${formatar(restante)} · ${rotulo} — Zyra`;
     } else if (tituloOriginal.current !== null) {
       document.title = tituloOriginal.current;
       tituloOriginal.current = null;
     }
-  }, [rodando, restante, faseAtual.label]);
+  }, [rodando, restante, faseAtual.label, tipo]);
 
   useEffect(() => {
     return () => {
@@ -239,16 +376,29 @@ export function Pomodoro({
     const tarefa = tarefas.find((t) => t.id === novoTarefaId);
     const minutos = minutosDaFase(tarefa, novaFase);
     setFase(novaFase);
+    setTipo("foco");
     setTarefaId(novoTarefaId);
     setTotal(minutos * 60);
     setRestante(minutos * 60);
     setRodando(false);
     setFimEm(null);
     setConcluido(false);
+    sessaoRef.current = null;
   };
 
   const iniciar = () => {
+    pedirPermissao();
     const seg = restante > 0 ? restante : total;
+    if (!sessaoRef.current) {
+      sessaoRef.current = {
+        id: crypto.randomUUID(),
+        tarefaId: tarefaId || null,
+        fase: tipo === "pausa" ? "pausa" : fase,
+        tipo,
+        minutos: Math.max(1, Math.round(total / 60)),
+        iniciadoEm: new Date().toISOString(),
+      };
+    }
     setRestante(seg);
     setFimEm(Date.now() + seg * 1000);
     setRodando(true);
@@ -268,6 +418,7 @@ export function Pomodoro({
     setRodando(false);
     setFimEm(null);
     setConcluido(false);
+    sessaoRef.current = null;
   };
 
   const ajustar = (deltaMinutos: number) => {
@@ -277,11 +428,38 @@ export function Pomodoro({
     setRodando(false);
     setFimEm(null);
     setConcluido(false);
+    sessaoRef.current = null;
+  };
+
+  const iniciarPausa = () => {
+    setTipo("pausa");
+    setTotal(PAUSA_MINUTOS * 60);
+    setRestante(PAUSA_MINUTOS * 60);
+    setRodando(false);
+    setFimEm(null);
+    setConcluido(false);
+    sessaoRef.current = null;
+  };
+
+  const voltarAoFoco = () => {
+    const minutos = minutosDaFase(tarefaAtual, fase);
+    setTipo("foco");
+    setTotal(minutos * 60);
+    setRestante(minutos * 60);
+    setRodando(false);
+    setFimEm(null);
+    setConcluido(false);
+    sessaoRef.current = null;
   };
 
   const pct = total > 0 ? Math.min(100, ((total - restante) / total) * 100) : 0;
   const raio = 54;
   const circ = 2 * Math.PI * raio;
+  const rotulo = tipo === "pausa" ? "Pausa" : faseAtual.label;
+  const pergunta =
+    tipo === "pausa"
+      ? "Solte o resultado por 5 minutos. O próximo passo pode esperar."
+      : faseAtual.pergunta;
 
   return (
     <div className={`card p-3 ${compacto ? "" : "sm:p-4"}`}>
@@ -295,11 +473,19 @@ export function Pomodoro({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-cream">Relógio de foco</p>
           <p className="text-[10px] text-muted/70">
-            pomodoro por fase · análise, execução e resultado
+            {tipo === "pausa"
+              ? "pausa entre sessões · respire e solte"
+              : "pomodoro por fase · análise, execução e resultado"}
           </p>
         </div>
         <span className="chip border-line/60 bg-white/45 text-[9px] text-muted">
-          {rodando ? "em foco" : concluido ? "concluído" : "parado"}
+          {rodando
+            ? tipo === "pausa"
+              ? "em pausa"
+              : "em foco"
+            : concluido
+              ? "concluído"
+              : "parado"}
         </span>
       </div>
 
@@ -339,7 +525,7 @@ export function Pomodoro({
                 className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em]"
                 style={{ color: cor }}
               >
-                {faseAtual.label}
+                {rotulo}
               </p>
               <p className="mt-0.5 text-[8px] text-muted/60">
                 {duracao(total / 60)}
@@ -366,35 +552,50 @@ export function Pomodoro({
             ))}
           </select>
 
-          <div className="mt-1.5 grid grid-cols-5 gap-1">
-            {FASES.map((f) => {
-              const ativa = f.key === fase;
-              return (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => aplicar(f.key)}
-                  title={f.pergunta}
-                  className={`rounded-md border px-1 py-1.5 text-[9px] font-medium transition ${
-                    ativa
-                      ? ""
-                      : "border-line/60 bg-white/40 text-muted hover:bg-white/70"
-                  }`}
-                  style={
-                    ativa
-                      ? {
-                          borderColor: f.cor,
-                          backgroundColor: `${f.cor}16`,
-                          color: f.cor,
-                        }
-                      : undefined
-                  }
-                >
-                  {f.curto}
-                </button>
-              );
-            })}
-          </div>
+          <p className="mt-1 text-[9px] leading-relaxed text-muted/60">
+            hoje: {sessoesFoco.length}{" "}
+            {sessoesFoco.length === 1 ? "sessão" : "sessões"} ·{" "}
+            {duracao(minutosHoje)}
+            {tarefaAtual
+              ? ` · nesta tarefa: ${sessoesTarefa.length} · ${duracao(minutosTarefa)}`
+              : ""}
+          </p>
+
+          {tipo === "pausa" ? (
+            <div className="mt-1.5 rounded-md border border-info/25 bg-info/10 px-2 py-1.5 text-[10px] leading-relaxed text-info">
+              pausa · respire, beba água, solte o resultado
+            </div>
+          ) : (
+            <div className="mt-1.5 grid grid-cols-5 gap-1">
+              {FASES.map((f) => {
+                const ativa = f.key === fase;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => aplicar(f.key)}
+                    title={f.pergunta}
+                    className={`rounded-md border px-1 py-1.5 text-[9px] font-medium transition ${
+                      ativa
+                        ? ""
+                        : "border-line/60 bg-white/40 text-muted hover:bg-white/70"
+                    }`}
+                    style={
+                      ativa
+                        ? {
+                            borderColor: f.cor,
+                            backgroundColor: `${f.cor}16`,
+                            color: f.cor,
+                          }
+                        : undefined
+                    }
+                  >
+                    {f.curto}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="mt-2 flex items-center gap-1">
             <button
@@ -413,14 +614,24 @@ export function Pomodoro({
             >
               +5
             </button>
-            <button
-              type="button"
-              onClick={() => aplicar(fase)}
-              className="btn-ghost ml-auto h-7 px-2 text-[10px]"
-              title="usar o tempo desta fase na tarefa"
-            >
-              tempo da fase
-            </button>
+            {tipo === "foco" ? (
+              <button
+                type="button"
+                onClick={() => aplicar(fase)}
+                className="btn-ghost ml-auto h-7 px-2 text-[10px]"
+                title="usar o tempo desta fase na tarefa"
+              >
+                tempo da fase
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={voltarAoFoco}
+                className="btn-ghost ml-auto h-7 px-2 text-[10px]"
+              >
+                voltar ao foco
+              </button>
+            )}
             <button
               type="button"
               onClick={reiniciar}
@@ -439,7 +650,7 @@ export function Pomodoro({
           className="mt-0.5 h-3 w-3 shrink-0"
           style={{ color: cor }}
         />
-        {faseAtual.pergunta}
+        {pergunta}
       </p>
 
       <div className="mt-2 flex items-center gap-1.5">
@@ -451,12 +662,18 @@ export function Pomodoro({
         >
           <Ico nome={rodando ? "pausa" : "play"} className="h-3.5 w-3.5" />
           {rodando
-            ? "pausar"
+            ? tipo === "pausa"
+              ? "pausar pausa"
+              : "pausar"
             : concluido
-              ? "recomeçar"
+              ? tipo === "pausa"
+                ? "nova pausa"
+                : "recomeçar"
               : restante < total
                 ? "continuar"
-                : "iniciar foco"}
+                : tipo === "pausa"
+                  ? "iniciar pausa"
+                  : "iniciar foco"}
         </button>
         {tarefaAtual ? (
           <Link
@@ -474,32 +691,66 @@ export function Pomodoro({
         <div className="mt-2 rounded-lg border border-done/30 bg-done/[0.06] px-2.5 py-2">
           <p className="flex items-center gap-1.5 text-[10px] font-medium text-done">
             <Ico nome="check-circulo" className="h-3 w-3" />
-            sessão concluída · {duracao(total / 60)} de{" "}
-            {faseAtual.label.toLowerCase()}
+            {tipo === "pausa"
+              ? `pausa concluída · ${PAUSA_MINUTOS} min`
+              : `sessão concluída · ${duracao(total / 60)} de ${faseAtual.label.toLowerCase()}`}
           </p>
-          {tarefaAtual ? (
-            <form action={registrarResultado} className="mt-1.5">
-              <input type="hidden" name="id" value={tarefaAtual.id} />
-              <textarea
-                name="resultado"
-                rows={2}
-                placeholder="O que ficou de concreto? Registre o resultado desta fase."
-                className="field resize-y text-[10px] leading-relaxed"
-              />
-              <div className="mt-1.5 flex items-center justify-between gap-2">
-                <span className="text-[9px] text-muted/60">
-                  fecha o ciclo · fase registrar
-                </span>
-                <button type="submit" className="btn-ghost h-7 px-2 text-[10px]">
-                  <Ico nome="check" className="h-3 w-3" />
-                  registrar
-                </button>
-              </div>
-            </form>
+
+          {tipo === "pausa" ? (
+            <button
+              type="button"
+              onClick={voltarAoFoco}
+              className="btn-ghost mt-1.5 h-7 w-full text-[10px]"
+            >
+              <Ico nome="play" className="h-3 w-3" />
+              voltar ao foco
+            </button>
+          ) : tarefaAtual ? (
+            <>
+              <form action={registrarResultado} className="mt-1.5">
+                <input type="hidden" name="id" value={tarefaAtual.id} />
+                <textarea
+                  name="resultado"
+                  rows={2}
+                  placeholder="O que ficou de concreto? Registre o resultado desta fase."
+                  className="field resize-y text-[10px] leading-relaxed"
+                />
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <span className="text-[9px] text-muted/60">
+                    fecha o ciclo · fase registrar
+                  </span>
+                  <button
+                    type="submit"
+                    className="btn-ghost h-7 px-2 text-[10px]"
+                  >
+                    <Ico nome="check" className="h-3 w-3" />
+                    registrar
+                  </button>
+                </div>
+              </form>
+              <button
+                type="button"
+                onClick={iniciarPausa}
+                className="btn-ghost mt-1.5 h-7 w-full text-[10px]"
+              >
+                <Ico nome="lua" className="h-3 w-3" />
+                fazer pausa de {PAUSA_MINUTOS} min
+              </button>
+            </>
           ) : (
-            <p className="mt-1 text-[10px] text-muted">
-              Escolha uma tarefa para registrar o resultado desta sessão.
-            </p>
+            <div className="mt-1.5 flex items-center justify-between gap-2">
+              <p className="text-[10px] text-muted">
+                Escolha uma tarefa para registrar o resultado.
+              </p>
+              <button
+                type="button"
+                onClick={iniciarPausa}
+                className="btn-ghost h-7 px-2 text-[10px]"
+              >
+                <Ico nome="lua" className="h-3 w-3" />
+                pausa {PAUSA_MINUTOS} min
+              </button>
+            </div>
           )}
         </div>
       ) : null}

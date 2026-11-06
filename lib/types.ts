@@ -43,6 +43,18 @@ export type Ancora = {
   criado_em: string;
 };
 
+export type Pomodoro = {
+  id: string;
+  tarefa_id: string | null;
+  fase: string;
+  tipo: "foco" | "pausa";
+  minutos: number;
+  iniciado_em: string;
+  concluido_em: string;
+  demo: number;
+  tarefa_titulo?: string | null;
+};
+
 export type Nota = {
   id: string;
   titulo: string | null;

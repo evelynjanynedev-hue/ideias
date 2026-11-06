@@ -461,6 +461,57 @@ export async function salvarAncora(fd: FormData) {
   atualizar();
 }
 
+/* ---------------- Pomodoros / foco ---------------- */
+
+const FASES_VALIDAS = new Set([
+  "analisar",
+  "organizar",
+  "criar",
+  "executar",
+  "registrar",
+]);
+
+export async function registrarPomodoro(dados: {
+  id: string;
+  tarefaId: string | null;
+  fase: string;
+  tipo: string;
+  minutos: number;
+  iniciadoEm: string;
+}) {
+  const id = (dados.id ?? "").trim();
+  if (!id) return;
+
+  const tipo = dados.tipo === "pausa" ? "pausa" : "foco";
+  const fase =
+    tipo === "pausa"
+      ? "pausa"
+      : FASES_VALIDAS.has(dados.fase)
+        ? dados.fase
+        : "executar";
+  const minutos = Math.min(
+    180,
+    Math.max(1, Math.round(Number(dados.minutos) || 1)),
+  );
+  const inicio = dados.iniciadoEm?.trim() || agoraISO();
+
+  await executar(
+    `INSERT INTO pomodoros
+       (id, tarefa_id, fase, tipo, minutos, iniciado_em, concluido_em, demo)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+     ON CONFLICT(id) DO NOTHING`,
+    id,
+    dados.tarefaId || null,
+    fase,
+    tipo,
+    minutos,
+    inicio,
+    agoraISO(),
+  );
+
+  atualizar();
+}
+
 export async function fecharRevisao() {
   await executar(
     "INSERT INTO revisoes (id, data, criado_em) VALUES (?, ?, ?) ON CONFLICT(data) DO NOTHING",

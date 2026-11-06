@@ -89,6 +89,7 @@ export default async function HojePage() {
     sprint,
     feitasHoje,
     ancoras,
+    pomodorosHoje,
   ] = await Promise.all([
     q.rituaisHoje(),
     q.contarRituaisHoje(),
@@ -104,6 +105,7 @@ export default async function HojePage() {
     q.sprintAtiva(),
     q.tarefasFeitasHoje(),
     q.ancorasHoje(),
+    q.pomodorosHoje(),
   ]);
 
   const progressoSprint = sprint ? await q.progressoSprint(sprint.id) : null;
@@ -436,7 +438,7 @@ export default async function HojePage() {
               <span className="text-[10px] text-muted/70">pomodoro por fase</span>
             }
           >
-            <Pomodoro tarefas={tarefasRelogio} compacto />
+            <Pomodoro tarefas={tarefasRelogio} sessoes={pomodorosHoje} compacto />
           </Secao>
 
           <Secao
