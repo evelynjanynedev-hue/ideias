@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { criarNota, fecharRevisao, limparExemplos } from "@/app/actions";
+import { fecharRevisao, limparExemplos } from "@/app/actions";
 import { BotaoEnviar } from "@/components/botao-enviar";
 import { Ico, type IconeNome } from "@/components/icons";
+import { RevisaoForm } from "@/components/revisao-form";
 import { Anel, Badge, Cabecalho, Secao, type Tom } from "@/components/ui";
 import { dataCurta, diaSemanaLongo, hoje, tempoRelativo } from "@/lib/format";
 import { duracao } from "@/lib/tempo";
@@ -458,29 +459,7 @@ export default async function RevisaoPage() {
                 ))}
               </ol>
 
-              <form action={criarNota} className="mt-4 border-t border-line/60 pt-4">
-                <input type="hidden" name="tipo" value="insight" />
-                <input type="hidden" name="area" value="pessoal" />
-                <input type="hidden" name="tags" value="revisão, semanal" />
-                <input type="hidden" name="titulo" value={`Revisão · ${dataCurta(h)}`} />
-                <label className="label" htmlFor="revisao-corpo">
-                  registrar a revisão
-                </label>
-                <textarea
-                  id="revisao-corpo"
-                  name="corpo"
-                  rows={4}
-                  required
-                  className="field resize-y leading-relaxed"
-                  placeholder="Escreva o que percebeu — sem performance. Isso vira matéria-prima da próxima semana."
-                />
-                <div className="mt-2 flex justify-end">
-                  <BotaoEnviar className="btn-ghost text-xs">
-                    <Ico nome="notas" className="h-3.5 w-3.5" />
-                    Salvar como insight
-                  </BotaoEnviar>
-                </div>
-              </form>
+              <RevisaoForm titulo={`Revisão · ${dataCurta(h)}`} />
             </div>
           </Secao>
 
@@ -500,8 +479,13 @@ export default async function RevisaoPage() {
                         {tempoRelativo(n.criado_em)}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-cream/75">
-                      {n.titulo || n.corpo}
+                    {n.titulo ? (
+                      <p className="mt-1 text-[11px] font-medium text-cream/80">
+                        {n.titulo}
+                      </p>
+                    ) : null}
+                    <p className="mt-1 line-clamp-3 text-xs leading-relaxed whitespace-pre-line text-cream/75">
+                      {n.corpo}
                     </p>
                   </article>
                 ))}

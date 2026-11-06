@@ -269,6 +269,25 @@ export async function criarNota(fd: FormData) {
   atualizar();
 }
 
+export type EstadoRevisao = { ok: boolean; erro?: string };
+
+export async function salvarRevisao(
+  _estado: EstadoRevisao,
+  fd: FormData,
+): Promise<EstadoRevisao> {
+  const corpo = texto(fd, "corpo");
+  if (!corpo) {
+    return { ok: false, erro: "Escreva o que você percebeu antes de salvar." };
+  }
+
+  try {
+    await criarNota(fd);
+    return { ok: true };
+  } catch {
+    return { ok: false, erro: "Não foi possível salvar agora. Tente de novo." };
+  }
+}
+
 export async function excluirNota(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
