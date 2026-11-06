@@ -100,6 +100,19 @@ export async function pomodorosDaSemana(limite = 60): Promise<Pomodoro[]> {
   );
 }
 
+export async function pomodorosDaTarefa(
+  tarefaId: string,
+  limite = 20,
+): Promise<Pomodoro[]> {
+  return todos<Pomodoro>(
+    `${SQL_POMODOROS}
+     WHERE p.tarefa_id = ?
+     ORDER BY p.concluido_em DESC LIMIT ?`,
+    tarefaId,
+    limite,
+  );
+}
+
 export async function resumoPomodorosHoje(): Promise<{
   sessoes: number;
   minutos: number;

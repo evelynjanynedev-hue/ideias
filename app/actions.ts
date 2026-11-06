@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { executar, um } from "@/lib/db";
 import { adicionarDias, agoraISO, hoje } from "@/lib/format";
 
@@ -170,6 +171,37 @@ export async function criarTarefa(fd: FormData) {
   atualizar();
 }
 
+export async function atualizarTarefa(fd: FormData) {
+  const id = texto(fd, "id");
+  const titulo = texto(fd, "titulo");
+  if (!id || !titulo) return;
+
+  await executar(
+    `UPDATE tarefas SET
+       titulo = ?, notas = ?, prioridade = ?, foco = ?, area = ?,
+       projeto_id = ?, pessoa_id = ?, janela = ?, vence_em = ?,
+       min_analisar = ?, min_organizar = ?, min_criar = ?, min_executar = ?, min_registrar = ?
+     WHERE id = ?`,
+    titulo,
+    opcional(fd, "notas"),
+    numero(fd, "prioridade", 3),
+    fd.get("foco") ? 1 : 0,
+    texto(fd, "area") || "pessoal",
+    opcional(fd, "projeto_id"),
+    opcional(fd, "pessoa_id"),
+    opcional(fd, "janela"),
+    opcional(fd, "vence_em"),
+    minutos(fd, "min_analisar"),
+    minutos(fd, "min_organizar"),
+    minutos(fd, "min_criar"),
+    minutos(fd, "min_executar"),
+    minutos(fd, "min_registrar"),
+    id,
+  );
+
+  atualizar();
+}
+
 export async function alternarTarefa(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
@@ -232,8 +264,10 @@ export async function alternarFoco(fd: FormData) {
 export async function excluirTarefa(fd: FormData) {
   const id = texto(fd, "id");
   if (!id) return;
+  const voltar = texto(fd, "voltar");
   await executar("DELETE FROM tarefas WHERE id = ?", id);
   atualizar();
+  if (voltar) redirect(voltar);
 }
 
 export async function adiarTarefa(fd: FormData) {

@@ -76,13 +76,15 @@ export function TarefaLinha({
               title="prioridade alta"
             />
           ) : null}
-          <span
-            className={`text-[13px] leading-relaxed ${
+          <Link
+            href={`/tarefas/${tarefa.id}`}
+            title="Abrir detalhes da tarefa"
+            className={`text-[13px] leading-relaxed transition hover:text-gold hover:underline hover:decoration-gold/30 ${
               feita ? "text-muted/60 line-through decoration-done/40" : "text-cream/90"
             }`}
           >
             {tarefa.titulo}
-          </span>
+          </Link>
         </p>
 
         {!feita ? (
@@ -174,6 +176,13 @@ export function TarefaLinha({
 
       {!feita ? (
         <div className="flex items-center gap-0.5">
+          <Link
+            href={`/tarefas/${tarefa.id}`}
+            title="Abrir detalhes da tarefa"
+            className="btn-quiet text-muted opacity-50 hover:text-gold hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          >
+            <Ico nome="seta" className="h-3.5 w-3.5" />
+          </Link>
           <Link
             href={`/presenca?tarefa=${tarefa.id}&fase=executar`}
             title="Abrir relógio de foco nesta tarefa"
