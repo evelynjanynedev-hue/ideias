@@ -52,6 +52,7 @@
 <script>
   const REPO = "evelynjanynedev-hue/zyra-app";
   const FONTES = [
+    `https://evelynjanynedev-hue.github.io/zyra-app/url.json?t=${Date.now()}`,
     `https://api.github.com/repos/${REPO}/contents/url.json?t=${Date.now()}`,
     `https://raw.githubusercontent.com/${REPO}/main/url.json?t=${Date.now()}`,
   ];
@@ -61,26 +62,43 @@
   const retry = document.getElementById("retry");
 
   async function descobrirUrl() {
-    for (const fonte of FONTES) {
+    // Lê todas as fontes em paralelo e escolhe a mais recente que responde.
+    // O CDN do GitHub Pages/raw pode ficar até 10 min atrás; a API vem na hora.
+    const leituras = await Promise.all(FONTES.map(async (fonte) => {
       try {
         const resposta = await fetch(fonte, {
           cache: "no-store",
+          signal: AbortSignal.timeout(6000),
           headers: { Accept: fonte.includes("api.github.com") ? "application/vnd.github.raw" : "application/json" },
         });
-        if (!resposta.ok) continue;
+        if (!resposta.ok) return null;
         const dados = await resposta.json();
         const url = String(dados.url || "");
-        if (/^https:\/\/[^\s]+$/.test(url)) return url;
+        if (!/^https:\/\/[^\s]+$/.test(url)) return null;
+        return { url, atualizado: String(dados.atualizado || "") };
       } catch (_) {
-        /* tenta a próxima fonte */
+        return null;
       }
+    }));
+
+    const candidatos = [];
+    for (const item of leituras) {
+      if (item && !candidatos.some((c) => c.url === item.url)) candidatos.push(item);
     }
-    return null;
+    candidatos.sort((a, b) => b.atualizado.localeCompare(a.atualizado));
+
+    for (const candidato of candidatos) {
+      if (await noAr(candidato.url)) return candidato.url;
+    }
+    return candidatos[0]?.url ?? null;
   }
 
   async function noAr(url) {
     try {
-      const resposta = await fetch(url + "/api/health", { cache: "no-store" });
+      const resposta = await fetch(url + "/api/health", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      });
       return resposta.ok;
     } catch (_) {
       return false;
